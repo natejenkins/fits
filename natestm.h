@@ -163,7 +163,7 @@ void onCalculateQuasi(int id);
 void onCalculateG011(int id);
 void onSave(int id);
 void onCalcWeights(int id);
-ScanUserData getScanUserData(void);
+ScanUserData* getScanUserData(void);
 
 template <class T>
 T getMax(T* array, int length){

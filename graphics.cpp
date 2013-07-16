@@ -107,25 +107,25 @@ void drawImage(T* image, int cols, int rows, double min, double max){
 void draw(void){
 	glClearColor(0,0.5, 0.6, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	ScanUserData scanUserData = getScanUserData();
-	if(scanUserData.gaps){
+	ScanUserData* scanUserData = getScanUserData();
+	if(scanUserData->gaps){
 		glViewport(0,0, myGraphicsData.width/2.0, myGraphicsData.height/2.0);
-		drawImage(scanUserData.gaps, scanUserData.nx, scanUserData.nx, -scanUserData.gap0, scanUserData.gap0);
+		drawImage(scanUserData->gaps, scanUserData->nx, scanUserData->nx, -scanUserData->gap0, scanUserData->gap0);
 	}
-	if(scanUserData.bandEnergy){
+	if(scanUserData->bandEnergy){
 		glViewport(myGraphicsData.width/2.0,0, myGraphicsData.width/2.0, myGraphicsData.height/2.0);
-		drawImage(scanUserData.bandEnergy, scanUserData.nx, scanUserData.nx, scanUserData.bandMin, scanUserData.bandMax);
+		drawImage(scanUserData->bandEnergy, scanUserData->nx, scanUserData->nx, scanUserData->bandMin, scanUserData->bandMax);
 	}
 
-	if(scanUserData.quasiEnergy){
+	if(scanUserData->quasiEnergy){
 		glViewport(myGraphicsData.width/2.0,myGraphicsData.height/2.0, myGraphicsData.width/2.0, myGraphicsData.height/2.0);
-		drawImage(scanUserData.quasiEnergy, scanUserData.nx, scanUserData.nx, scanUserData.quasiMin, scanUserData.quasiMax);
+		drawImage(scanUserData->quasiEnergy, scanUserData->nx, scanUserData->nx, scanUserData->quasiMin, scanUserData->quasiMax);
 	}
 
-	if(scanUserData.spec){
+	if(scanUserData->spec){
 		glViewport(0,myGraphicsData.height/2.0, myGraphicsData.width/2.0, myGraphicsData.height/2.0);
-		displaySpecData(scanUserData.spec, scanUserData.numSpecVoltages, scanUserData.specMin, scanUserData.specMax, 1.0,0.0,0.0);
-		//drawImage(scanUserData.quasiEnergy, scanUserData.nx, scanUserData.nx, scanUserData.quasiMin, scanUserData.quasiMax);
+		displaySpecData(scanUserData->spec, scanUserData->numSpecVoltages, scanUserData->specMin, scanUserData->specMax, 1.0,0.0,0.0);
+		//drawImage(scanUserData->quasiEnergy, scanUserData->nx, scanUserData->nx, scanUserData->quasiMin, scanUserData->quasiMax);
 	}
 
 	glutSwapBuffers();
@@ -159,7 +159,7 @@ void initGL(void){
 
 
 int init_glui(int argc, char* argv[]){
-	ScanUserData scanUserData = getScanUserData();
+	ScanUserData* scanUserData = getScanUserData();
 	myGraphicsData.width = myGraphicsData.height = 700;
 	glutInit(&argc, argv);
 	glutInitWindowSize(myGraphicsData.width,myGraphicsData.height);
@@ -177,39 +177,39 @@ int init_glui(int argc, char* argv[]){
 	myGraphicsData.topoRollout = myGraphicsData.glui->add_rollout("Model Parameters", true);
 	/****************************** TOPOGRAPHY *********************************************/
 
-	myGraphicsData.nxSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "nx:", GLUI_SPINNER_INT, &(scanUserData.nx) );
+	myGraphicsData.nxSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "nx:", GLUI_SPINNER_INT, &(scanUserData->nx) );
 	myGraphicsData.nxSpinner->set_int_limits( NUM_XY_MIN, NUM_XY_MAX );
 
-	myGraphicsData.gapSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "gap0:", GLUI_SPINNER_FLOAT, &(scanUserData.gap0) );
+	myGraphicsData.gapSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "gap0:", GLUI_SPINNER_FLOAT, &(scanUserData->gap0) );
 	myGraphicsData.gapSpinner->set_float_limits( 0.0, 100.0 );
 
-	myGraphicsData.t1Spinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "t1:", GLUI_SPINNER_FLOAT, &(scanUserData.t1) );
+	myGraphicsData.t1Spinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "t1:", GLUI_SPINNER_FLOAT, &(scanUserData->t1) );
 	myGraphicsData.t1Spinner->set_float_limits( T_MIN, T_MAX );
 
-	myGraphicsData.t2Spinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "t2:", GLUI_SPINNER_FLOAT, &(scanUserData.t2) );
+	myGraphicsData.t2Spinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "t2:", GLUI_SPINNER_FLOAT, &(scanUserData->t2) );
 	myGraphicsData.t2Spinner->set_float_limits( T_MIN, T_MAX );
 
-	myGraphicsData.t3Spinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "t3:", GLUI_SPINNER_FLOAT, &(scanUserData.t3) );
+	myGraphicsData.t3Spinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "t3:", GLUI_SPINNER_FLOAT, &(scanUserData->t3) );
 	myGraphicsData.t3Spinner->set_float_limits( T_MIN, T_MAX );
 
-	myGraphicsData.EmSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "Em:", GLUI_SPINNER_FLOAT, &(scanUserData.Em) );
+	myGraphicsData.EmSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "Em:", GLUI_SPINNER_FLOAT, &(scanUserData->Em) );
 	myGraphicsData.EmSpinner->set_float_limits( T_MIN, T_MAX );
 
-	myGraphicsData.uSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "u:", GLUI_SPINNER_FLOAT, &(scanUserData.u) );
+	myGraphicsData.uSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "u:", GLUI_SPINNER_FLOAT, &(scanUserData->u) );
 	myGraphicsData.uSpinner->set_float_limits( U_MIN, U_MAX );
 
-	myGraphicsData.vSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "vMax:", GLUI_SPINNER_FLOAT, &(scanUserData.vMax) );
+	myGraphicsData.vSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "vMax:", GLUI_SPINNER_FLOAT, &(scanUserData->vMax) );
 	myGraphicsData.vSpinner->set_float_limits( 0, V_MAX );
 
-	myGraphicsData.gammaSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "gamma:", GLUI_SPINNER_FLOAT, &(scanUserData.gamma) );
+	myGraphicsData.gammaSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "gamma:", GLUI_SPINNER_FLOAT, &(scanUserData->gamma) );
 	myGraphicsData.gammaSpinner->set_float_limits( GAMMA_MIN, GAMMA_MAX );
 
-	myGraphicsData.nvSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "num Vs:", GLUI_SPINNER_INT, &(scanUserData.numSpecVoltages) );
+	myGraphicsData.nvSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "num Vs:", GLUI_SPINNER_INT, &(scanUserData->numSpecVoltages) );
 	myGraphicsData.nvSpinner->set_int_limits( NUM_XY_MIN, NUM_XY_MAX );
 
 
 	myGraphicsData.glui->add_button_to_panel(myGraphicsData.topoRollout, "calculate G011", -1, onCalculateG011);
-	myGraphicsData.glui->add_edittext_to_panel(myGraphicsData.topoRollout, "Filename", GLUI_EDITTEXT_TEXT, &scanUserData.filename);
+	myGraphicsData.glui->add_edittext_to_panel(myGraphicsData.topoRollout, "Filename", GLUI_EDITTEXT_TEXT, &scanUserData->filename);
 	myGraphicsData.glui->add_button_to_panel(myGraphicsData.topoRollout, "Save", -1, onSave);
 	myGraphicsData.glui->add_button_to_panel(myGraphicsData.topoRollout, "Calc Weights", -1, onCalcWeights);
 

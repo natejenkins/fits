@@ -151,8 +151,8 @@ void arrayRange(T* array, T min, T max, int numSteps){
 
 ScanUserData scanUserData;
 
-ScanUserData getScanUserData(void){
-	return scanUserData;
+ScanUserData* getScanUserData(void){
+	return &scanUserData;
 }
 
 int main(int argc, char* argv[])
