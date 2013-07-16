@@ -59,7 +59,7 @@ std::complex<double> a;
 struct ScanUserData{
 
 	int numSpecVoltages, numSpecSamples, numSpec, nx, nv;
-
+	char filename[100];
 	double vMin, vMax;
 	int	action;
 	
@@ -132,6 +132,8 @@ struct graphicsData{
 
 	GLUI_Rollout* topoRollout;
 	GLUI_Rollout* specRollout;
+
+	GLUI_EditText* filename_edit;
 
 	
 

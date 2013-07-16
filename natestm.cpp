@@ -8,6 +8,7 @@
 #include <complex>
 #include <cmath>
 #include <iostream>
+#include <fstream>
 #include "define_constants.h"
 
 using namespace std;
@@ -26,6 +27,7 @@ void onCalculateGap(int id);
 void onCalculateBand(int id);
 void onCalculateQuasi(int id);
 void onCalculateG011(int id);
+void onSave(int id);
 
 template <class T, class U>
 void dWaveGap(U gap0, T* kx, T* ky, T* gap, int rows){
@@ -191,9 +193,7 @@ int main(int argc, char* argv[])
 
 	myGraphicsData.glui = GLUI_Master.create_glui( "GLUI", 0,myGraphicsData.width+20,0 );	
 
-	myGraphicsData.topoRollout = myGraphicsData.glui->add_rollout("Topo Params", true);
-	myGraphicsData.specRollout = myGraphicsData.glui->add_rollout("Spec Params", true);
-
+	myGraphicsData.topoRollout = myGraphicsData.glui->add_rollout("Model Parameters", true);
 	/****************************** TOPOGRAPHY *********************************************/
 
 	myGraphicsData.nxSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "nx:", GLUI_SPINNER_INT, &(scanUserData.nx) );
@@ -228,21 +228,21 @@ int main(int argc, char* argv[])
 
 
 	myGraphicsData.glui->add_button_to_panel(myGraphicsData.topoRollout, "calculate G011", -1, onCalculateG011);
+	myGraphicsData.glui->add_edittext_to_panel(myGraphicsData.topoRollout, "Filename", GLUI_EDITTEXT_TEXT, &scanUserData.filename);
+	myGraphicsData.glui->add_button_to_panel(myGraphicsData.topoRollout, "Save", -1, onSave);
 
 	/****************************** SPECTROSCOPY *********************************************/
 	
-	myGraphicsData.vMinSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.specRollout, "vMin:", GLUI_SPINNER_FLOAT, &(scanUserData.vMin) );
-	myGraphicsData.vMinSpinner->set_int_limits( V_MIN, V_MAX );
+	// myGraphicsData.vMinSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.specRollout, "vMin:", GLUI_SPINNER_FLOAT, &(scanUserData.vMin) );
+	// myGraphicsData.vMinSpinner->set_int_limits( V_MIN, V_MAX );
 	
 	
-	myGraphicsData.glui->add_statictext_to_panel(myGraphicsData.specRollout, "         vMax == -vMin");
+	// myGraphicsData.glui->add_statictext_to_panel(myGraphicsData.specRollout, "         vMax == -vMin");
 
-	myGraphicsData.numSpecVoltagesSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.specRollout,"nv:", GLUI_SPINNER_INT, &(scanUserData.numSpecVoltages) );
-	myGraphicsData.numSpecVoltagesSpinner->set_int_limits( NUM_VOLTAGES_MIN, NUM_VOLTAGES_MAX );
+	// myGraphicsData.numSpecVoltagesSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.specRollout,"nv:", GLUI_SPINNER_INT, &(scanUserData.numSpecVoltages) );
+	// myGraphicsData.numSpecVoltagesSpinner->set_int_limits( NUM_VOLTAGES_MIN, NUM_VOLTAGES_MAX );
 
-	//myGraphicsData.smoothSpecWidthSpinner->set_speed(SPINNER_SPEED);
-
-	myGraphicsData.glui->add_column(true);
+	// myGraphicsData.glui->add_column(true);
 
 	myGraphicsData.glui->sync_live();
 	
@@ -250,36 +250,26 @@ int main(int argc, char* argv[])
 	myGraphicsData.autoScaleTopo = 1;
 	myGraphicsData.autoScaleSpec = 1;
 
-	//glutIdleFunc(idle);
 	GLUI_Master.set_glutIdleFunc(idle);
 
 	glutPostRedisplay();
 	glutMainLoop();
 
-
-//	delete[] myGraphicsData.dapQuestion;
-//	delete[] myGraphicsData.dapAnswer;
-// delete[] scanUserData.dapFileName;
-
 	return 0;
 }
 
 void idle(){
-	
-/*	scanUserData.topoMax  = getMax(scanUserData.topoData, scanUserData.numTopoPointsRead);
-	scanUserData.topoMin  = getMin(scanUserData.topoData, scanUserData.numTopoPointsRead);
-	scanUserData.topoMean = (double)getMean(scanUserData.topoData, scanUserData.numTopoPointsRead);
-	scanUserData.topoDev = sqrt(getVariance(scanUserData.topoData, scanUserData.numTopoPointsRead));
-	
-*/
-
 	usleep(1000);
-
 }
 
 void allocateMemory(ScanUserData* scanUserData){
 	printf("allocating scan memory\n");
 
+	// if(scanUserData->filename){
+	// 	delete[] scanUserData->filename;
+	// 	scanUserData->filename = 0;
+		
+	// }
 
 	if(scanUserData->gaps){
 		delete[] scanUserData->gaps;
@@ -322,6 +312,8 @@ void allocateMemory(ScanUserData* scanUserData){
 		scanUserData->spec = 0;
 		
 	}
+
+	// scanUserData->filename = new char[100];
 
 	scanUserData->gaps = new double[scanUserData->nx*scanUserData->nx];
 	scanUserData->bandEnergy = new double[scanUserData->nx*scanUserData->nx];
@@ -514,6 +506,21 @@ void onCalculateG011(int id){
 
 }
 	
-
+void onSave(int id){
+	printf("onsave\n");
+	printf("%s\n", scanUserData.filename);
+	double v;
+	double stepSize = 2*scanUserData.vMax/(scanUserData.numSpecVoltages-1);
+  	ofstream file;
+  	file.open(scanUserData.filename);
+	
+	double n_squared = scanUserData.nx*scanUserData.nx;
+	for(int i=0; i<scanUserData.numSpecVoltages; i++){
+		v = -scanUserData.vMax + i*stepSize;
+		file << v << "    " << scanUserData.spec[i] << "\n";
+	}	
+	file.close();	
+	return;
+}
 
 
