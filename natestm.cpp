@@ -68,15 +68,16 @@ void calcQuasiEnergy(T* band, T* gap, T* quasi, int rows){
 template <class T>
 complex<T> calcG011(T w, complex<T> gamma, T* quasi_k, T* delta_k, int rows){
 	int cols = rows;
-	int row, col;
+	int row, col, index;
 	complex<T> t1, g011(0.0,0.0), wg;
 	wg = w + gamma;
 	for(row = 0; row<rows; row++){
 		for(col = 0; col<cols; col++){
-			t1 = pow(delta_k[row*cols+col], 2)/(wg + quasi_k[row*cols+col]);
+			index = row*cols + col;
+			t1 = pow(delta_k[index], 2)/(wg + quasi_k[index]);
 			
 			//g011 += 1.0/(w + gamma - quasi_k[row*cols+col] - t1);
-			g011 += 1.0/(wg - quasi_k[row*cols+col] - t1);
+			g011 += 1.0/(wg - quasi_k[index] - t1);
 		}
 	}
 	return g011;
@@ -272,7 +273,7 @@ void idle(){
 	
 */
 
-	//sleep(100);
+	usleep(1000);
 
 //printf("idling\n");
 }
@@ -529,11 +530,7 @@ void onCalculateQuasi(int id){
 
 void onCalculateG011(int id){
 	allocateMemory(&scanUserData);
-	ScanUserData s;
-	s.kx=s.ky=s.gaps=s.quasiEnergy=s.bandEnergy=0;
-	s.spec = 0;
-	s.G11 = 0;
-	allocateMemory(&s);
+
 	arrayRange(scanUserData.kx, -PI, PI, scanUserData.nx);
 	arrayRange(scanUserData.ky, -PI, PI, scanUserData.nx);
 	dWaveGap(scanUserData.gap0, scanUserData.kx, scanUserData.ky, scanUserData.gaps, scanUserData.nx);
@@ -564,7 +561,7 @@ void onCalculateG011(int id){
 	/*actually uses bare dispersion, not quasi dispersion*/
 	calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.G11, scanUserData.nx);
 	//calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.quasiEnergy, scanUserData.gaps, scanUserData.G11, scanUserData.nx);
-
+	cout << "finished G11\n";
 	for(int i=0; i<scanUserData.numSpecVoltages; i++){
 		//cout << "re: " << scanUserData.G11[i].real() << " im: "<< scanUserData.G11[i].imag() << endl;
 		scanUserData.spec[i] = -(1/PI)*scanUserData.G11[i].imag();
