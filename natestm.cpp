@@ -227,9 +227,6 @@ int main(int argc, char* argv[])
 	myGraphicsData.nvSpinner->set_int_limits( NUM_XY_MIN, NUM_XY_MAX );
 
 
-	myGraphicsData.glui->add_button_to_panel(myGraphicsData.topoRollout, "calculate Gap", -1, onCalculateGap);
-	myGraphicsData.glui->add_button_to_panel(myGraphicsData.topoRollout, "calculate Band", -1, onCalculateBand);
-	myGraphicsData.glui->add_button_to_panel(myGraphicsData.topoRollout, "calculate Quasi", -1, onCalculateQuasi);
 	myGraphicsData.glui->add_button_to_panel(myGraphicsData.topoRollout, "calculate G011", -1, onCalculateG011);
 
 	/****************************** SPECTROSCOPY *********************************************/
@@ -468,18 +465,6 @@ void onResize(int width, int height){
 	myGraphicsData.height = height;
 }
 
-void onCalculateGap(int id){
-
-}
-
-void onCalculateBand(int id){
-
-
-}
-void onCalculateQuasi(int id){
-
-
-}
 
 void onCalculateG011(int id){
 	allocateMemory(&scanUserData);
@@ -512,9 +497,7 @@ void onCalculateG011(int id){
 
 	
 	double n_squared = scanUserData.nx*scanUserData.nx;
-	printf("vMax: %.16lf, vstep: %.16lf, maxV: %.16lf\n", scanUserData.vMax, stepSize, -scanUserData.vMax + (scanUserData.numSpecVoltages-1)*stepSize);
 	for(int i=0; i<scanUserData.numSpecVoltages; i++){
-		//cout << "re: " << scanUserData.G11[i].real() << " im: "<< scanUserData.G11[i].imag() << endl;
 		v = -scanUserData.vMax + i*stepSize;
 		scanUserData.spec[i] = -(1/(n_squared*PI))*scanUserData.G11[i].imag();
 		//printf("%lf %lf\n", v, scanUserData.spec[i]);
@@ -524,12 +507,6 @@ void onCalculateG011(int id){
 	scanUserData.specMin = getMin(scanUserData.spec, scanUserData.numSpecVoltages);
 	scanUserData.specMax = getMax(scanUserData.spec, scanUserData.numSpecVoltages);
 	
-
-
-
-
-
-
 	if(glutGetWindow() != myGraphicsData.mainWindow){
 				glutSetWindow(myGraphicsData.mainWindow);
 	}
