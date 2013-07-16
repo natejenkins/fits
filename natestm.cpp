@@ -1,10 +1,10 @@
+//gcc natestm.cpp -o test -lGL -lGLU -lglut -lglui
+//gcc -g natestm.cpp -o test -lGL -lGLU -lglut -lglui
 
 #include <stdio.h>
 #include <string>
 #include "natestm.h"
 #include <GL/glui.h>
-//#include <complex.h>
-//#include <math.h>
 #include <complex>
 #include <cmath>
 #include <iostream>
@@ -163,6 +163,7 @@ int main(int argc, char* argv[])
 	scanUserData.gamma = 1.0;
 
 	myGraphicsData.width = myGraphicsData.height = 700;
+	glutInit(&argc, argv);
 	glutInitWindowSize(myGraphicsData.width,myGraphicsData.height);
 	glutInitDisplayMode(GLUT_DOUBLE);
 	myGraphicsData.mainWindow = glutCreateWindow("natemodel");
@@ -271,7 +272,7 @@ void idle(){
 	
 */
 
-	sleep(1);
+	//sleep(100);
 
 //printf("idling\n");
 }
