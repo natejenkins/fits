@@ -65,6 +65,7 @@ struct ScanUserData{
 	
 	double* kx;
 	double* ky;
+	double* k_weights;
 	double* gaps;
 	double* bandEnergy;
 	double* quasiEnergy;
@@ -255,6 +256,17 @@ void copyArray(T* array, T* arrayCopy, int length){
 		return;
 	for(int i=0; i<length; i++){
 		arrayCopy[i]=array[i];
+	}
+}
+
+template <class T>
+void printArray(T* array, int rows, int cols){
+	int row, col;
+	for(row=0; row<rows; row++){
+		for(col=0; col<cols; col++){
+			printf("%lf ", array[row*cols + col]);
+		}
+		printf("\n");
 	}
 }
 

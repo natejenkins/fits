@@ -28,6 +28,37 @@ void onCalculateBand(int id);
 void onCalculateQuasi(int id);
 void onCalculateG011(int id);
 void onSave(int id);
+void onCalcWeights(int id);
+
+template <class T>
+void calcKWeights(T* weights, int rows){
+	int cols = rows;
+	int row, col;
+	int rowMiddle = rows/2 + 1;
+	int colMiddle = cols/2;
+	int rowStart = 0;
+	int colStart = 1;
+	weights[0] = 1;
+	//for(row = 0; row<rowMiddle; row++){ 
+	//The first row is special and we calculate it independently. 
+	row = 0;
+	for(col = colStart; col<colMiddle; col++){
+		weights[row*cols + col] = 4;
+	}
+	colStart++;
+	//}
+	weights[row*cols + colMiddle] = 2;
+
+
+	// for(row = 0; row<rowMiddle; row++){
+	// 	weights[colStart] = 
+	// 	for(col = colStart; col<colMiddle; col++){
+	// 		quasi[row*cols+col]= sqrt(	band[row*cols+col]*band[row*cols+col]+
+	// 									gap[row*cols+col]*gap[row*cols+col]);
+	// 	}
+	// 	colStart++;
+	// }
+}
 
 template <class T, class U>
 void dWaveGap(U gap0, T* kx, T* ky, T* gap, int rows){
@@ -230,6 +261,7 @@ int main(int argc, char* argv[])
 	myGraphicsData.glui->add_button_to_panel(myGraphicsData.topoRollout, "calculate G011", -1, onCalculateG011);
 	myGraphicsData.glui->add_edittext_to_panel(myGraphicsData.topoRollout, "Filename", GLUI_EDITTEXT_TEXT, &scanUserData.filename);
 	myGraphicsData.glui->add_button_to_panel(myGraphicsData.topoRollout, "Save", -1, onSave);
+	myGraphicsData.glui->add_button_to_panel(myGraphicsData.topoRollout, "Calc Weights", -1, onCalcWeights);
 
 	/****************************** SPECTROSCOPY *********************************************/
 	
@@ -301,6 +333,12 @@ void allocateMemory(ScanUserData* scanUserData){
 		
 	}
 
+	if(scanUserData->k_weights){
+		delete[] scanUserData->k_weights;
+		scanUserData->k_weights = 0;
+		
+	}
+
 	if(scanUserData->G11){
 		delete[] scanUserData->G11;
 		scanUserData->G11 = 0;
@@ -321,6 +359,8 @@ void allocateMemory(ScanUserData* scanUserData){
 	scanUserData->kx = new double[scanUserData->nx];
 	scanUserData->ky = new double[scanUserData->nx];
 
+	scanUserData->k_weights = new double[scanUserData->nx*scanUserData->nx];
+
 	scanUserData->G11 = new complex<double>[scanUserData->numSpecVoltages];
 	scanUserData->spec = new double[scanUserData->numSpecVoltages];
 
@@ -328,6 +368,7 @@ void allocateMemory(ScanUserData* scanUserData){
 	initArray(scanUserData->gaps, 0, scanUserData->nx*scanUserData->nx);
 	initArray(scanUserData->bandEnergy, 0, scanUserData->nx*scanUserData->nx);
 	initArray(scanUserData->quasiEnergy, 0, scanUserData->nx*scanUserData->nx);
+	initArray(scanUserData->k_weights, 0, scanUserData->nx*scanUserData->nx);
 	initArray(scanUserData->kx, 0, scanUserData->nx);
 	initArray(scanUserData->ky, 0, scanUserData->nx);
 	initArray(scanUserData->G11, 0, scanUserData->numSpecVoltages);
@@ -523,4 +564,9 @@ void onSave(int id){
 	return;
 }
 
+
+void onCalcWeights(int id){
+	calcKWeights(scanUserData.k_weights, scanUserData.nx);
+	printArray(scanUserData.k_weights, scanUserData.nx, scanUserData.nx);
+}
 
