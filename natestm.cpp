@@ -191,23 +191,8 @@ void initGL(void){
 	
 } 
 
-int main(int argc, char* argv[])
-{
-	
-	scanUserData.gaps = scanUserData.bandEnergy = scanUserData.quasiEnergy = 0;
 
-
-	scanUserData.quasiMin = scanUserData.bandMin = -1.0;
-	scanUserData.quasiMax = scanUserData.bandMax = 1.0;
-
-	scanUserData.t1 = -882;
-	scanUserData.t2 = 239;
-	scanUserData.t3 = -14;
-	scanUserData.Em = -26;
-	scanUserData.u  = -4.0*(scanUserData.t2 - scanUserData.t3) - scanUserData.Em;
-	cout << "U = " << scanUserData.u << "\n";
-	scanUserData.vMax  = 100.0;
-	scanUserData.gamma = 1.0;
+int init_glui(int argc, char* argv[]){
 
 	myGraphicsData.width = myGraphicsData.height = 700;
 	glutInit(&argc, argv);
@@ -218,17 +203,6 @@ int main(int argc, char* argv[])
 	glutReshapeFunc(onResize);
 	
 	initGL();
-	
-	
-
-	scanUserData.numSpecVoltages = 256;
-
-	scanUserData.nx = 256;
-	scanUserData.gap0 = 50;
-
-	scanUserData.action = TOPO_ACTION;
-
-	scanUserData.smoothSpecWidth = 3;
 
 	/****************************** USER INTERFACE *********************************************/
 
@@ -273,19 +247,6 @@ int main(int argc, char* argv[])
 	myGraphicsData.glui->add_button_to_panel(myGraphicsData.topoRollout, "Save", -1, onSave);
 	myGraphicsData.glui->add_button_to_panel(myGraphicsData.topoRollout, "Calc Weights", -1, onCalcWeights);
 
-	/****************************** SPECTROSCOPY *********************************************/
-	
-	// myGraphicsData.vMinSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.specRollout, "vMin:", GLUI_SPINNER_FLOAT, &(scanUserData.vMin) );
-	// myGraphicsData.vMinSpinner->set_int_limits( V_MIN, V_MAX );
-	
-	
-	// myGraphicsData.glui->add_statictext_to_panel(myGraphicsData.specRollout, "         vMax == -vMin");
-
-	// myGraphicsData.numSpecVoltagesSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.specRollout,"nv:", GLUI_SPINNER_INT, &(scanUserData.numSpecVoltages) );
-	// myGraphicsData.numSpecVoltagesSpinner->set_int_limits( NUM_VOLTAGES_MIN, NUM_VOLTAGES_MAX );
-
-	// myGraphicsData.glui->add_column(true);
-
 	myGraphicsData.glui->sync_live();
 	
 
@@ -296,6 +257,32 @@ int main(int argc, char* argv[])
 
 	glutPostRedisplay();
 	glutMainLoop();
+
+	return(0);
+}
+
+int main(int argc, char* argv[])
+{
+	
+	scanUserData.gaps = scanUserData.bandEnergy = scanUserData.quasiEnergy = 0;
+
+
+	scanUserData.quasiMin = scanUserData.bandMin = -1.0;
+	scanUserData.quasiMax = scanUserData.bandMax = 1.0;
+
+	scanUserData.t1 = -882;
+	scanUserData.t2 = 239;
+	scanUserData.t3 = -14;
+	scanUserData.Em = -26;
+	scanUserData.u  = -4.0*(scanUserData.t2 - scanUserData.t3) - scanUserData.Em;
+	scanUserData.vMax  = 100.0;
+	scanUserData.gamma = 1.0;
+
+	scanUserData.numSpecVoltages = 256;
+	scanUserData.nx = 256;
+	scanUserData.gap0 = 50;
+
+	init_glui(argc, argv);
 
 	return 0;
 }
