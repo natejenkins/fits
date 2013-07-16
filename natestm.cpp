@@ -34,7 +34,7 @@ template <class T>
 void calcKWeights(T* weights, int rows){
 	int cols = rows;
 	int row, col;
-	int rowMiddle = rows/2 + 1;
+	int rowMiddle = rows/2;
 	int colMiddle = cols/2;
 	int rowStart = 0;
 	int colStart = 1;
@@ -42,22 +42,20 @@ void calcKWeights(T* weights, int rows){
 	//for(row = 0; row<rowMiddle; row++){ 
 	//The first row is special and we calculate it independently. 
 	row = 0;
-	for(col = colStart; col<colMiddle; col++){
-		weights[row*cols + col] = 4;
+	for(col = 1; col<colMiddle; col++){
+		weights[col] = 4;
 	}
-	colStart++;
-	//}
-	weights[row*cols + colMiddle] = 2;
+	weights[colMiddle] = 2;
 
 
-	// for(row = 0; row<rowMiddle; row++){
-	// 	weights[colStart] = 
-	// 	for(col = colStart; col<colMiddle; col++){
-	// 		quasi[row*cols+col]= sqrt(	band[row*cols+col]*band[row*cols+col]+
-	// 									gap[row*cols+col]*gap[row*cols+col]);
-	// 	}
-	// 	colStart++;
-	// }
+	for(row = 1; row<rowMiddle; row++){
+		weights[row*cols + row] = 4;
+		for(col = row+1; col<colMiddle; col++){
+			weights[row*cols + col] = 8;
+		}
+		weights[row*cols + colMiddle] = 4;
+	}
+	weights[rowMiddle*cols + colMiddle] = 1;
 }
 
 template <class T, class U>
@@ -99,25 +97,27 @@ void calcQuasiEnergy(T* band, T* gap, T* quasi, int rows){
 
 /*this functions calculates G11 for one energy, the next function for a range of energies*/
 template <class T>
-complex<T> calcG011(T w, complex<T> gamma, T* quasi_k, T* delta_k, int rows){
+complex<T> calcG011(T w, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights, int rows){
 	int cols = rows;
 	int row, col, index;
 	complex<T> t1, g011(0.0,0.0), wg;
+	T weight;
 	wg = w + gamma;
 	for(row = 0; row<rows; row++){
 		for(col = 0; col<cols; col++){
 			index = row*cols + col;
+			weight = k_weights[index];
 			t1 = pow(delta_k[index], 2)/(wg + quasi_k[index]);
 			
 			//g011 += 1.0/(w + gamma - quasi_k[row*cols+col] - t1);
-			g011 += 1.0/(wg - quasi_k[index] - t1);
+			g011 += weight/(wg - quasi_k[index] - t1);
 		}
 	}
 	return g011;
 }
 
 template <class T>
-void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta_k, complex<T>* G11, int rows){
+void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights, complex<T>* G11, int rows){
 	
 	int i;
 	complex<T> t1;
@@ -130,7 +130,7 @@ void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta
 	for(i=0;i<numSpecVoltages;i++){
 		w = -wMax + i*stepSize;
 		//cout << "voltage is " << w << endl;
-		G11[i] = calcG011(w, gamma, quasi_k, delta_k, rows);
+		G11[i] = calcG011(w, gamma, quasi_k, delta_k, k_weights, rows);
 	}
 }
 
@@ -521,8 +521,9 @@ void onCalculateG011(int id){
 	complex<double> gamma(0.0,scanUserData.gamma);
 	double w = 0.0;
 
+	calcKWeights(scanUserData.k_weights, scanUserData.nx);
 	/*actually uses bare dispersion, not quasi dispersion*/
-	calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.G11, scanUserData.nx);
+	calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.G11, scanUserData.nx);
 	//calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.quasiEnergy, scanUserData.gaps, scanUserData.G11, scanUserData.nx);
 	cout << "finished G11\n";
 	double v;
