@@ -93,6 +93,7 @@ void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta
 		stepSize = 2*wMax/(numSpecVoltages-1);
 	else 
 		stepSize = 0;
+	printf("vMax: %.16lf, vstep: %.16lf, maxV: %.16lf", wMax, stepSize, -wMax + (numSpecVoltages-1)*stepSize);
 	for(i=0;i<numSpecVoltages;i++){
 		w = -wMax + i*stepSize;
 		//cout << "voltage is " << w << endl;
@@ -112,6 +113,7 @@ T fermi(T energy, T fermiEnergy, T beta){
 template <class T>
 void arrayRange(T* array, T min, T max, int numSteps){
 	T stepSize = (max-min)/(numSteps-1);
+	//printf("step: %lf max: %lf\n", stepSize, min + stepSize*(numSteps-1));
 	for(int i=0; i<numSteps; i++){
 		array[i] = min + i*stepSize;
 	}
@@ -467,59 +469,15 @@ void onResize(int width, int height){
 }
 
 void onCalculateGap(int id){
-	allocateMemory(&scanUserData);
-	arrayRange(scanUserData.kx, -PI, PI, scanUserData.nx);
-	arrayRange(scanUserData.ky, -PI, PI, scanUserData.nx);
-	dWaveGap(scanUserData.gap0, scanUserData.kx, scanUserData.ky, scanUserData.gaps, scanUserData.nx);
 
-
-	if(glutGetWindow() != myGraphicsData.mainWindow){
-				glutSetWindow(myGraphicsData.mainWindow);
-	}
-	glutPostRedisplay();
 }
 
 void onCalculateBand(int id){
-	allocateMemory(&scanUserData);
-	arrayRange(scanUserData.kx, -PI, PI, scanUserData.nx);
-	arrayRange(scanUserData.ky, -PI, PI, scanUserData.nx);
-	dWaveGap(scanUserData.gap0, scanUserData.kx, scanUserData.ky, scanUserData.gaps, scanUserData.nx);
 
-	scanUserData.u  = -4.0*(scanUserData.t2 - scanUserData.t3) - scanUserData.Em;
-	calcBandEnergy(	scanUserData.kx, scanUserData.ky, 
-					scanUserData.t1, scanUserData.t2, scanUserData.t3, 
-					scanUserData.u, scanUserData.bandEnergy, scanUserData.nx);
-
-	scanUserData.bandMin = getMin(scanUserData.bandEnergy, scanUserData.nx*scanUserData.nx);
-	scanUserData.bandMax = getMax(scanUserData.bandEnergy, scanUserData.nx*scanUserData.nx);
-
-	if(glutGetWindow() != myGraphicsData.mainWindow){
-				glutSetWindow(myGraphicsData.mainWindow);
-	}
-	glutPostRedisplay();
 
 }
 void onCalculateQuasi(int id){
-	allocateMemory(&scanUserData);
-	arrayRange(scanUserData.kx, -PI, PI, scanUserData.nx);
-	arrayRange(scanUserData.ky, -PI, PI, scanUserData.nx);
-	dWaveGap(scanUserData.gap0, scanUserData.kx, scanUserData.ky, scanUserData.gaps, scanUserData.nx);
-	scanUserData.u  = -4.0*(scanUserData.t2 - scanUserData.t3) - scanUserData.Em;
-	calcBandEnergy(	scanUserData.kx, scanUserData.ky, 
-					scanUserData.t1, scanUserData.t2, scanUserData.t3, 
-					scanUserData.u, scanUserData.bandEnergy, scanUserData.nx);
 
-	scanUserData.bandMin = getMin(scanUserData.bandEnergy, scanUserData.nx*scanUserData.nx);
-	scanUserData.bandMax = getMax(scanUserData.bandEnergy, scanUserData.nx*scanUserData.nx);
-
-	calcQuasiEnergy(scanUserData.bandEnergy, scanUserData.gaps, scanUserData.quasiEnergy, scanUserData.nx);
-	scanUserData.quasiMin = getMin(scanUserData.quasiEnergy, scanUserData.nx*scanUserData.nx);
-	scanUserData.quasiMax = getMax(scanUserData.quasiEnergy, scanUserData.nx*scanUserData.nx);
-
-	if(glutGetWindow() != myGraphicsData.mainWindow){
-				glutSetWindow(myGraphicsData.mainWindow);
-	}
-	glutPostRedisplay();
 
 }
 
@@ -551,12 +509,15 @@ void onCalculateG011(int id){
 	cout << "finished G11\n";
 	double v;
 	double stepSize = 2*scanUserData.vMax/(scanUserData.numSpecVoltages-1);
+
+	
 	double n_squared = scanUserData.nx*scanUserData.nx;
+	printf("vMax: %.16lf, vstep: %.16lf, maxV: %.16lf\n", scanUserData.vMax, stepSize, -scanUserData.vMax + (scanUserData.numSpecVoltages-1)*stepSize);
 	for(int i=0; i<scanUserData.numSpecVoltages; i++){
 		//cout << "re: " << scanUserData.G11[i].real() << " im: "<< scanUserData.G11[i].imag() << endl;
 		v = -scanUserData.vMax + i*stepSize;
 		scanUserData.spec[i] = -(1/(n_squared*PI))*scanUserData.G11[i].imag();
-		printf("%lf %lf\n", v, scanUserData.spec[i]);
+		//printf("%lf %lf\n", v, scanUserData.spec[i]);
 
 	}	
 

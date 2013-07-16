@@ -60,7 +60,7 @@ struct ScanUserData{
 
 	int numSpecVoltages, numSpecSamples, numSpec, nx, nv;
 
-	float vMin, vMax;
+	double vMin, vMax;
 	int	action;
 	
 	double* kx;
