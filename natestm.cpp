@@ -95,7 +95,7 @@ void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta
 		stepSize = 0;
 	for(i=0;i<numSpecVoltages;i++){
 		w = -wMax + i*stepSize;
-		cout << "voltage is " << w << endl;
+		//cout << "voltage is " << w << endl;
 		G11[i] = calcG011(w, gamma, quasi_k, delta_k, rows);
 	}
 }
@@ -160,6 +160,7 @@ int main(int argc, char* argv[])
 	scanUserData.t3 = -14;
 	scanUserData.Em = -26;
 	scanUserData.u  = -4.0*(scanUserData.t2 - scanUserData.t3) - scanUserData.Em;
+	cout << "U = " << scanUserData.u << "\n";
 	scanUserData.vMax  = 100.0;
 	scanUserData.gamma = 1.0;
 
@@ -275,7 +276,6 @@ void idle(){
 
 	usleep(1000);
 
-//printf("idling\n");
 }
 
 void allocateMemory(ScanUserData* scanUserData){
@@ -347,9 +347,8 @@ void allocateMemory(ScanUserData* scanUserData){
 template <class T>
 void displaySpecData(T *specData, int numPoints, double yMin, double yMax, double red, double green, double blue)
 {
-	//printf("display specdata\n");
+	
 	int i;
-	//	double xScale, yScale, yOffset, delX;
 	
 	
 	if(specData==0)
@@ -371,8 +370,7 @@ void displaySpecData(T *specData, int numPoints, double yMin, double yMax, doubl
 	
 	for(i=0; i<numPoints; i++){
 		glVertex3f((float)i, (float)specData[i], 0.0f); 
-		//printf("i %d sd %f\n", i, (float)specData[i]*(float)yScale+(float)yOffset);
-		//glVertex3f(i, yMax/2.0, 0.0f);
+		
 	}
 	glEnd();
 	
@@ -384,7 +382,6 @@ void displaySpecData(T *specData, int numPoints, double yMin, double yMax, doubl
 
 template <class T>
 void drawImage(T* image, int cols, int rows, double min, double max){
-	//printf("drawing\n");
 	int i,j;
 	float scale;
 	
@@ -392,8 +389,7 @@ void drawImage(T* image, int cols, int rows, double min, double max){
 	glLoadIdentity();
 	//set up an orthographic projection 
 	glOrtho(0, cols, 0, rows, -1, 1);
-	//printf("width: %lf height: %lf\n", rows*curRange/range, rows*curRange/range);
-	
+
 	//lode the model matrix where we can rotate or translate our image
 	glMatrixMode(GL_MODELVIEW);
 	//clear the model matrix stack
@@ -440,7 +436,6 @@ void drawImage(T* image, int cols, int rows, double min, double max){
 }
 
 void draw(void){
-//	printf("drawing\n");
 	glClearColor(0,0.5, 0.6, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	if(scanUserData.gaps){
@@ -531,8 +526,9 @@ void onCalculateQuasi(int id){
 void onCalculateG011(int id){
 	allocateMemory(&scanUserData);
 
-	arrayRange(scanUserData.kx, -PI, PI, scanUserData.nx);
-	arrayRange(scanUserData.ky, -PI, PI, scanUserData.nx);
+	arrayRange(scanUserData.kx, -PI, PI - (2*PI)/scanUserData.nx, scanUserData.nx);
+	arrayRange(scanUserData.ky, -PI, PI - (2*PI)/scanUserData.nx, scanUserData.nx);
+	
 	dWaveGap(scanUserData.gap0, scanUserData.kx, scanUserData.ky, scanUserData.gaps, scanUserData.nx);
 	scanUserData.u  = -4.0*(scanUserData.t2 - scanUserData.t3) - scanUserData.Em;
 	calcBandEnergy(	scanUserData.kx, scanUserData.ky, 
@@ -549,22 +545,18 @@ void onCalculateG011(int id){
 	complex<double> gamma(0.0,scanUserData.gamma);
 	double w = 0.0;
 
-	complex<double> g011;
-	//g011 = new complex<double>[scanUserData.nx*scanUserData.nx];
-
-	/*for(int i=0; i<10; i++){
-		g011 = calcG011((double)i, gamma, scanUserData.quasiEnergy, scanUserData.gaps, scanUserData.nx);
-		cout << i << endl;
-		cout << "re: " << g011.real() << " im: "<< g011.imag() << endl;
-	}*/
-
 	/*actually uses bare dispersion, not quasi dispersion*/
 	calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.G11, scanUserData.nx);
 	//calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.quasiEnergy, scanUserData.gaps, scanUserData.G11, scanUserData.nx);
 	cout << "finished G11\n";
+	double v;
+	double stepSize = 2*scanUserData.vMax/(scanUserData.numSpecVoltages-1);
+	double n_squared = scanUserData.nx*scanUserData.nx;
 	for(int i=0; i<scanUserData.numSpecVoltages; i++){
 		//cout << "re: " << scanUserData.G11[i].real() << " im: "<< scanUserData.G11[i].imag() << endl;
-		scanUserData.spec[i] = -(1/PI)*scanUserData.G11[i].imag();
+		v = -scanUserData.vMax + i*stepSize;
+		scanUserData.spec[i] = -(1/(n_squared*PI))*scanUserData.G11[i].imag();
+		printf("%lf %lf\n", v, scanUserData.spec[i]);
 
 	}	
 
