@@ -9,7 +9,10 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include <ctime>
 #include "define_constants.h"
+//#include <boost/progress.hpp>
+#include <boost/timer.hpp>
 
 using namespace std;
 
@@ -107,6 +110,9 @@ complex<T> calcG011(T w, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights,
 		for(col = 0; col<cols; col++){
 			index = row*cols + col;
 			weight = k_weights[index];
+			if(weight == 0){
+				continue;
+			}
 			t1 = pow(delta_k[index], 2)/(wg + quasi_k[index]);
 			
 			//g011 += 1.0/(w + gamma - quasi_k[row*cols+col] - t1);
@@ -118,7 +124,8 @@ complex<T> calcG011(T w, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights,
 
 template <class T>
 void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights, complex<T>* G11, int rows){
-	
+	printf("STARTING CALCULATION\n");
+	boost::timer t;
 	int i;
 	complex<T> t1;
 	T w, stepSize;
@@ -126,12 +133,15 @@ void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta
 		stepSize = 2*wMax/(numSpecVoltages-1);
 	else 
 		stepSize = 0;
-	printf("vMax: %.16lf, vstep: %.16lf, maxV: %.16lf", wMax, stepSize, -wMax + (numSpecVoltages-1)*stepSize);
+	//printf("vMax: %.16lf, vstep: %.16lf, maxV: %.16lf\n", wMax, stepSize, -wMax + (numSpecVoltages-1)*stepSize);
 	for(i=0;i<numSpecVoltages;i++){
 		w = -wMax + i*stepSize;
 		//cout << "voltage is " << w << endl;
 		G11[i] = calcG011(w, gamma, quasi_k, delta_k, k_weights, rows);
 	}
+	double elapsed_time = t.elapsed();
+	cout << "G11 elapsed time: " << elapsed_time << "\n";
+	printf("ENDING CALCULATION\n");
 }
 
 template <class T>
