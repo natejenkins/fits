@@ -47,6 +47,9 @@
 
 #define PI 3.14159265
 
+
+
+
 struct imageScale{
 	double min;
 	double max;
@@ -54,7 +57,6 @@ struct imageScale{
 	double dev;
 };
 
-std::complex<double> a;
 
 struct ScanUserData{
 
@@ -151,6 +153,17 @@ struct graphicsData{
 	
 
 };
+
+void idle(void);
+void allocateMemory(ScanUserData* scanUserData);
+void onResize(int width, int height);
+void onCalculateGap(int id);
+void onCalculateBand(int id);
+void onCalculateQuasi(int id);
+void onCalculateG011(int id);
+void onSave(int id);
+void onCalcWeights(int id);
+ScanUserData getScanUserData(void);
 
 template <class T>
 T getMax(T* array, int length){

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string>
 #include "natestm.h"
+#include "graphics.h"
 #include <GL/glui.h>
 #include <complex>
 #include <cmath>
@@ -16,15 +17,6 @@
 
 using namespace std;
 
-void idle(void);
-void allocateMemory(ScanUserData* scanUserData);
-void onResize(int width, int height);
-void onCalculateGap(int id);
-void onCalculateBand(int id);
-void onCalculateQuasi(int id);
-void onCalculateG011(int id);
-void onSave(int id);
-void onCalcWeights(int id);
 
 template <class T>
 void calcKWeights(T* weights, int rows){
@@ -158,6 +150,10 @@ void arrayRange(T* array, T min, T max, int numSteps){
 
 
 ScanUserData scanUserData;
+
+ScanUserData getScanUserData(void){
+	return scanUserData;
+}
 
 int main(int argc, char* argv[])
 {
@@ -314,10 +310,8 @@ void onCalculateG011(int id){
 	scanUserData.specMin = getMin(scanUserData.spec, scanUserData.numSpecVoltages);
 	scanUserData.specMax = getMax(scanUserData.spec, scanUserData.numSpecVoltages);
 	
-	if(glutGetWindow() != myGraphicsData.mainWindow){
-				glutSetWindow(myGraphicsData.mainWindow);
-	}
-	glutPostRedisplay();
+	post_redisplay();
+
 
 }
 	

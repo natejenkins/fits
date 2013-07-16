@@ -1,14 +1,17 @@
 #include "natestm.h"
+#include "graphics.h"
 #include <GL/glui.h>
 
-void draw(void);
-void drawTopo(const graphicsData& myGraphicsData, const ScanUserData& scanUserData);
-void drawSpectro(const graphicsData& myGraphicsData, const ScanUserData& scanUserData);
-void drawEcut(const graphicsData& myGraphicsData, const ScanUserData& scanUserData);
-
-void gluiCallback(int id);
-
 graphicsData myGraphicsData;
+
+void post_redisplay(void){
+	if(glutGetWindow() != myGraphicsData.mainWindow){
+			glutSetWindow(myGraphicsData.mainWindow);
+	}
+	glutPostRedisplay();
+}
+
+
 
 template <class T>
 void displaySpecData(T *specData, int numPoints, double yMin, double yMax, double red, double green, double blue)
@@ -104,6 +107,7 @@ void drawImage(T* image, int cols, int rows, double min, double max){
 void draw(void){
 	glClearColor(0,0.5, 0.6, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	ScanUserData scanUserData = getScanUserData();
 	if(scanUserData.gaps){
 		glViewport(0,0, myGraphicsData.width/2.0, myGraphicsData.height/2.0);
 		drawImage(scanUserData.gaps, scanUserData.nx, scanUserData.nx, -scanUserData.gap0, scanUserData.gap0);
@@ -155,7 +159,7 @@ void initGL(void){
 
 
 int init_glui(int argc, char* argv[]){
-
+	ScanUserData scanUserData = getScanUserData();
 	myGraphicsData.width = myGraphicsData.height = 700;
 	glutInit(&argc, argv);
 	glutInitWindowSize(myGraphicsData.width,myGraphicsData.height);
