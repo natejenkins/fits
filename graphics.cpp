@@ -108,19 +108,19 @@ void draw(void){
 	glClearColor(0,0.5, 0.6, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	ScanUserData* scanUserData = getScanUserData();
-	if(scanUserData->gaps){
-		glViewport(0,0, myGraphicsData.width/2.0, myGraphicsData.height/2.0);
-		drawImage(scanUserData->gaps, scanUserData->nx, scanUserData->nx, -scanUserData->gap0, scanUserData->gap0);
-	}
-	if(scanUserData->bandEnergy){
-		glViewport(myGraphicsData.width/2.0,0, myGraphicsData.width/2.0, myGraphicsData.height/2.0);
-		drawImage(scanUserData->bandEnergy, scanUserData->nx, scanUserData->nx, scanUserData->bandMin, scanUserData->bandMax);
-	}
+	// if(scanUserData->gaps){
+	// 	glViewport(0,0, myGraphicsData.width/2.0, myGraphicsData.height/2.0);
+	// 	drawImage(scanUserData->gaps, scanUserData->nx, scanUserData->nx, -scanUserData->gap0, scanUserData->gap0);
+	// }
+	// if(scanUserData->bandEnergy){
+	// 	glViewport(myGraphicsData.width/2.0,0, myGraphicsData.width/2.0, myGraphicsData.height/2.0);
+	// 	drawImage(scanUserData->bandEnergy, scanUserData->nx, scanUserData->nx, scanUserData->bandMin, scanUserData->bandMax);
+	// }
 
-	if(scanUserData->quasiEnergy){
-		glViewport(myGraphicsData.width/2.0,myGraphicsData.height/2.0, myGraphicsData.width/2.0, myGraphicsData.height/2.0);
-		drawImage(scanUserData->quasiEnergy, scanUserData->nx, scanUserData->nx, scanUserData->quasiMin, scanUserData->quasiMax);
-	}
+	// if(scanUserData->quasiEnergy){
+	// 	glViewport(myGraphicsData.width/2.0,myGraphicsData.height/2.0, myGraphicsData.width/2.0, myGraphicsData.height/2.0);
+	// 	drawImage(scanUserData->quasiEnergy, scanUserData->nx, scanUserData->nx, scanUserData->quasiMin, scanUserData->quasiMax);
+	// }
 
 	if(scanUserData->spec){
 		glViewport(0,myGraphicsData.height/2.0, myGraphicsData.width/2.0, myGraphicsData.height/2.0);

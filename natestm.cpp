@@ -91,8 +91,8 @@ complex<T> calcG011(T w, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights,
 	complex<T> t1, g011(0.0,0.0), wg;
 	T weight;
 	wg = w + gamma;
-	for(row = 0; row<rows; row++){
-		for(col = 0; col<cols; col++){
+	for(row = 0; row<rows/2+1; row++){
+		for(col = 0; col<cols/2+1; col++){
 			index = row*cols + col;
 			weight = k_weights[index];
 			if(weight == 0){
@@ -109,6 +109,28 @@ complex<T> calcG011(T w, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights,
 
 template <class T>
 void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights, complex<T>* G11, int rows){
+	printf("STARTING CALCULATION\n");
+	boost::timer t;
+	int i;
+	complex<T> t1;
+	T w, stepSize;
+	if(numSpecVoltages > 1)
+		stepSize = 2*wMax/(numSpecVoltages-1);
+	else 
+		stepSize = 0;
+	//printf("vMax: %.16lf, vstep: %.16lf, maxV: %.16lf\n", wMax, stepSize, -wMax + (numSpecVoltages-1)*stepSize);
+	for(i=0;i<numSpecVoltages;i++){
+		w = -wMax + i*stepSize;
+		//cout << "voltage is " << w << endl;
+		G11[i] = calcG011(w, gamma, quasi_k, delta_k, k_weights, rows);
+	}
+	double elapsed_time = t.elapsed();
+	cout << "G11 elapsed time: " << elapsed_time << "\n";
+	printf("ENDING CALCULATION\n");
+}
+
+template <class T>
+void calcG11_linear(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights, complex<T>* G11, int rows){
 	printf("STARTING CALCULATION\n");
 	boost::timer t;
 	int i;
@@ -293,23 +315,29 @@ void onCalculateG011(int id){
 	calcKWeights(scanUserData.k_weights, scanUserData.nx);
 	/*actually uses bare dispersion, not quasi dispersion*/
 	calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.G11, scanUserData.nx);
-	//calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.quasiEnergy, scanUserData.gaps, scanUserData.G11, scanUserData.nx);
+	//calcG11_linear((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.G11, scanUserData.nx);
+	
+	
 	cout << "finished G11\n";
 	double v;
 	double stepSize = 2*scanUserData.vMax/(scanUserData.numSpecVoltages-1);
 
 	
 	double n_squared = scanUserData.nx*scanUserData.nx;
+	cout << "calculating spec values\n";
 	for(int i=0; i<scanUserData.numSpecVoltages; i++){
 		v = -scanUserData.vMax + i*stepSize;
 		scanUserData.spec[i] = -(1/(n_squared*PI))*scanUserData.G11[i].imag();
 		//printf("%lf %lf\n", v, scanUserData.spec[i]);
 
 	}	
+	cout << "finished spec values\n";
+
+	cout << "calculating max min\n";
 
 	scanUserData.specMin = getMin(scanUserData.spec, scanUserData.numSpecVoltages);
 	scanUserData.specMax = getMax(scanUserData.spec, scanUserData.numSpecVoltages);
-	
+	cout << "finished max min\n";
 	post_redisplay();
 
 
