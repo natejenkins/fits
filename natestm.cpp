@@ -119,11 +119,13 @@ void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta
 	else 
 		stepSize = 0;
 	//printf("vMax: %.16lf, vstep: %.16lf, maxV: %.16lf\n", wMax, stepSize, -wMax + (numSpecVoltages-1)*stepSize);
+	#pragma omp parallel for
 	for(i=0;i<numSpecVoltages;i++){
 		w = -wMax + i*stepSize;
 		//cout << "voltage is " << w << endl;
 		G11[i] = calcG011(w, gamma, quasi_k, delta_k, k_weights, rows);
 	}
+	
 	double elapsed_time = t.elapsed();
 	cout << "G11 elapsed time: " << elapsed_time << "\n";
 	printf("ENDING CALCULATION\n");
