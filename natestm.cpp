@@ -133,7 +133,7 @@ void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta
 
 template <class T>
 void calcG11_linear(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights, complex<T>* G11, int rows){
-	printf("STARTING CALCULATION\n");
+	printf("STARTING CALCULATION LINEAR\n");
 	boost::timer t;
 	int i;
 	complex<T> t1;
@@ -169,6 +169,18 @@ void arrayRange(T* array, T min, T max, int numSteps){
 	for(int i=0; i<numSteps; i++){
 		array[i] = min + i*stepSize;
 	}
+}
+
+
+template <class T>
+T* free_and_reallocate(T* array, int length){
+	if(array){
+		delete[] array;
+	}
+
+	array = new T[length];
+	initArray(array, 0, length);
+	return array;
 }
 
 
@@ -211,84 +223,27 @@ void idle(){
 
 void allocateMemory(ScanUserData* scanUserData){
 	printf("allocating scan memory\n");
+	int nx_squared = scanUserData->nx*scanUserData->nx;
+	int nx = scanUserData->nx;
 
-	// if(scanUserData->filename){
-	// 	delete[] scanUserData->filename;
-	// 	scanUserData->filename = 0;
-		
-	// }
+	scanUserData->gaps = free_and_reallocate(scanUserData->gaps, nx_squared);
+	scanUserData->bandEnergy = free_and_reallocate(scanUserData->bandEnergy, nx_squared);
+	scanUserData->quasiEnergy = free_and_reallocate(scanUserData->quasiEnergy, nx_squared);
+	scanUserData->kx = free_and_reallocate(scanUserData->kx, nx);
+	scanUserData->ky = free_and_reallocate(scanUserData->ky, nx);
+	scanUserData->k_weights = free_and_reallocate(scanUserData->k_weights, nx_squared);
+	scanUserData->G11 = free_and_reallocate(scanUserData->G11, scanUserData->numSpecVoltages);
+	scanUserData->spec = free_and_reallocate(scanUserData->spec, scanUserData->numSpecVoltages);
 
-	if(scanUserData->gaps){
-		delete[] scanUserData->gaps;
-		scanUserData->gaps = 0;
-		
-	}
-
-	if(scanUserData->bandEnergy){
-		delete[] scanUserData->bandEnergy;
-		scanUserData->bandEnergy = 0;
-		
-	}
-
-	if(scanUserData->quasiEnergy){
-		delete[] scanUserData->quasiEnergy;
-		scanUserData->quasiEnergy = 0;
-		
-	}
-
-	if(scanUserData->kx){
-		delete[] scanUserData->kx;
-		scanUserData->kx = 0;
-		
-	}
-
-	if(scanUserData->ky){
-		delete[] scanUserData->ky;
-		scanUserData->ky = 0;
-		
-	}
-
-	if(scanUserData->k_weights){
-		delete[] scanUserData->k_weights;
-		scanUserData->k_weights = 0;
-		
-	}
-
-	if(scanUserData->G11){
-		delete[] scanUserData->G11;
-		scanUserData->G11 = 0;
-		
-	}
-
-	if(scanUserData->spec){
-		delete[] scanUserData->spec;
-		scanUserData->spec = 0;
-		
-	}
-
-	// scanUserData->filename = new char[100];
-
-	scanUserData->gaps = new double[scanUserData->nx*scanUserData->nx];
-	scanUserData->bandEnergy = new double[scanUserData->nx*scanUserData->nx];
-	scanUserData->quasiEnergy = new double[scanUserData->nx*scanUserData->nx];
-	scanUserData->kx = new double[scanUserData->nx];
-	scanUserData->ky = new double[scanUserData->nx];
-
-	scanUserData->k_weights = new double[scanUserData->nx*scanUserData->nx];
-
-	scanUserData->G11 = new complex<double>[scanUserData->numSpecVoltages];
-	scanUserData->spec = new double[scanUserData->numSpecVoltages];
-
-
-	initArray(scanUserData->gaps, 0, scanUserData->nx*scanUserData->nx);
-	initArray(scanUserData->bandEnergy, 0, scanUserData->nx*scanUserData->nx);
-	initArray(scanUserData->quasiEnergy, 0, scanUserData->nx*scanUserData->nx);
-	initArray(scanUserData->k_weights, 0, scanUserData->nx*scanUserData->nx);
-	initArray(scanUserData->kx, 0, scanUserData->nx);
-	initArray(scanUserData->ky, 0, scanUserData->nx);
+	cout << "initing";
+	initArray(scanUserData->gaps, 0, nx_squared);
+	initArray(scanUserData->bandEnergy, 0, nx_squared);
+	initArray(scanUserData->quasiEnergy, 0, nx_squared);
+	initArray(scanUserData->k_weights, 0, nx_squared);
+	initArray(scanUserData->kx, 0, nx);
+	initArray(scanUserData->ky, 0, nx);
 	initArray(scanUserData->G11, 0, scanUserData->numSpecVoltages);
 	initArray(scanUserData->spec, 0, scanUserData->numSpecVoltages);
-
 }
 
 
