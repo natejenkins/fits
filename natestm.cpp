@@ -235,15 +235,6 @@ void allocateMemory(ScanUserData* scanUserData){
 	scanUserData->G11 = free_and_reallocate(scanUserData->G11, scanUserData->numSpecVoltages);
 	scanUserData->spec = free_and_reallocate(scanUserData->spec, scanUserData->numSpecVoltages);
 
-	// cout << "initing";
-	// initArray(scanUserData->gaps, 0, nx_squared);
-	// initArray(scanUserData->bandEnergy, 0, nx_squared);
-	// initArray(scanUserData->quasiEnergy, 0, nx_squared);
-	// initArray(scanUserData->k_weights, 0, nx_squared);
-	// initArray(scanUserData->kx, 0, nx);
-	// initArray(scanUserData->ky, 0, nx);
-	// initArray(scanUserData->G11, 0, scanUserData->numSpecVoltages);
-	// initArray(scanUserData->spec, 0, scanUserData->numSpecVoltages);
 }
 
 
