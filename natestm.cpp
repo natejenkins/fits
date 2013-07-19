@@ -136,6 +136,15 @@ void calcG11_linear(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T
 	printf("STARTING CALCULATION LINEAR\n");
 	boost::timer t;
 	int i;
+	int reduced_rows, reduced_cols;
+	reduced_rows = reduced_cols = rows/2 + 1;
+	int n_squared = rows*rows;
+	T *reduced_quasi_k, *reduced_delta_k, *reduced_k_weights;
+	reduced_quasi_k = free_and_reallocate(reduced_quasi_k, n_squared);
+	reduced_delta_k = free_and_reallocate(reduced_delta_k, n_squared);
+	reduced_k_weights = free_and_reallocate(reduced_k_weights, n_squared);
+	
+	
 	complex<T> t1;
 	T w, stepSize;
 	if(numSpecVoltages > 1)
@@ -240,9 +249,11 @@ void allocateMemory(ScanUserData* scanUserData){
 
 void onCalculateG011(int id){
 	allocateMemory(&scanUserData);
-
+	
+	calcKWeights(scanUserData.k_weights, scanUserData.nx);
 	arrayRange(scanUserData.kx, -PI, PI - (2*PI)/scanUserData.nx, scanUserData.nx);
 	arrayRange(scanUserData.ky, -PI, PI - (2*PI)/scanUserData.nx, scanUserData.nx);
+
 	
 	dWaveGap(scanUserData.gap0, scanUserData.kx, scanUserData.ky, scanUserData.gaps, scanUserData.nx);
 	scanUserData.u  = -4.0*(scanUserData.t2 - scanUserData.t3) - scanUserData.Em;
@@ -260,7 +271,7 @@ void onCalculateG011(int id){
 	complex<double> gamma(0.0,scanUserData.gamma);
 	double w = 0.0;
 
-	calcKWeights(scanUserData.k_weights, scanUserData.nx);
+	
 	/*actually uses bare dispersion, not quasi dispersion*/
 	calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.G11, scanUserData.nx);
 	//calcG11_linear((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.G11, scanUserData.nx);
