@@ -14,27 +14,31 @@
 #include "define_constants.h"
 //#include <boost/progress.hpp>
 #include <boost/timer.hpp>
+#include <cuda.h>
+#include <cuComplex.h>
+#include "g_kernel.h"
 
 using namespace std;
 
 
 template <class T>
-void calcKWeights(T* weights, int rows){
+int calcKWeights(T* weights, int rows){
 	int cols = rows;
 	int row, col;
 	int rowMiddle = rows/2;
 	int colMiddle = cols/2;
 	int rowStart = 0;
 	int colStart = 1;
+	int length=0;
 	weights[0] = 1;
 	//for(row = 0; row<rowMiddle; row++){ 
 	//The first row is special and we calculate it independently. 
 	row = 0;
 	for(col = 1; col<colMiddle; col++){
 		weights[col] = 4;
+		
 	}
 	weights[colMiddle] = 2;
-
 
 	for(row = 1; row<rowMiddle; row++){
 		weights[row*cols + row] = 4;
@@ -44,6 +48,13 @@ void calcKWeights(T* weights, int rows){
 		weights[row*cols + colMiddle] = 4;
 	}
 	weights[rowMiddle*cols + colMiddle] = 1;
+
+	for(row = 0; row<rows; row++){	
+		for(col = 0; col<cols; col++){
+			length++;
+		}
+	}
+	return length;
 }
 
 template <class T, class U>
@@ -138,7 +149,7 @@ void calcG11_linear(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T
 	int i;
 	int reduced_rows, reduced_cols;
 	reduced_rows = reduced_cols = rows/2 + 1;
-	int n_squared = rows*rows;
+	int n_squared = reduced_rows*reduced_rows;
 	T *reduced_quasi_k, *reduced_delta_k, *reduced_k_weights;
 	reduced_quasi_k = free_and_reallocate(reduced_quasi_k, n_squared);
 	reduced_delta_k = free_and_reallocate(reduced_delta_k, n_squared);
@@ -249,8 +260,8 @@ void allocateMemory(ScanUserData* scanUserData){
 
 void onCalculateG011(int id){
 	allocateMemory(&scanUserData);
-	
-	calcKWeights(scanUserData.k_weights, scanUserData.nx);
+
+	int non_zero_length = calcKWeights(scanUserData.k_weights, scanUserData.nx);
 	arrayRange(scanUserData.kx, -PI, PI - (2*PI)/scanUserData.nx, scanUserData.nx);
 	arrayRange(scanUserData.ky, -PI, PI - (2*PI)/scanUserData.nx, scanUserData.nx);
 
@@ -293,6 +304,8 @@ void onCalculateG011(int id){
 	cout << "finished spec values\n";
 
 	cout << "calculating max min\n";
+	double val = call_g_kernel(100.0, gamma, scanUserData.quasiEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.nx);
+	test_nate(5);
 
 	scanUserData.specMin = getMin(scanUserData.spec, scanUserData.numSpecVoltages);
 	scanUserData.specMax = getMax(scanUserData.spec, scanUserData.numSpecVoltages);
