@@ -14,9 +14,11 @@
 #include "define_constants.h"
 //#include <boost/progress.hpp>
 #include <boost/timer.hpp>
-#include <cuda.h>
-#include <cuComplex.h>
-#include "g_kernel.h"
+
+/* removing cuda functionality for the moment */
+//#include <cuda.h>
+//#include <cuComplex.h>
+//#include "g_kernel.h"
 
 using namespace std;
 
@@ -119,6 +121,33 @@ complex<T> calcG011(T w, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights,
 }
 
 template <class T>
+complex<T> calcG011_with_lorentzian(T w, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights, int rows){
+	int cols = rows;
+	int row, col, index;
+	T Amplitude = 100.0;
+	T energy = -60.0;
+	complex<T> t1, g011(0.0,0.0), wg, sigma_w;
+	T weight;
+	wg = w + gamma;
+	for(row = 0; row<rows/2+1; row++){
+		for(col = 0; col<cols/2+1; col++){
+			index = row*cols + col;
+			weight = k_weights[index];
+			if(weight == 0){
+				continue;
+			}
+			sigma_w = lorentzian(Amplitude, energy, w, gamma);
+			t1 = pow(delta_k[index], 2)/(wg + quasi_k[index] -sigma_w);
+			
+			
+			//g011 += 1.0/(w + gamma - quasi_k[row*cols+col] - t1);
+			g011 += weight/(wg - quasi_k[index] - sigma_w - t1);
+		}
+	}
+	return g011;
+}
+
+template <class T>
 void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights, complex<T>* G11, int rows){
 	printf("STARTING CALCULATION\n");
 	boost::timer t;
@@ -134,7 +163,7 @@ void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta
 	for(i=0;i<numSpecVoltages;i++){
 		w = -wMax + i*stepSize;
 		//cout << "voltage is " << w << endl;
-		G11[i] = calcG011(w, gamma, quasi_k, delta_k, k_weights, rows);
+		G11[i] = calcG011_with_lorentzian(w, gamma, quasi_k, delta_k, k_weights, rows);
 	}
 	
 	double elapsed_time = t.elapsed();
@@ -177,6 +206,14 @@ template <class T>
 T fermi(T energy, T fermiEnergy, T beta){
 	return 1/(pow(M_E, (energy-fermiEnergy)*beta) + 1.0);	
 	
+}
+
+template <class T>
+complex<T> lorentzian(T Amplitude, T energy, T w, complex<T> gamma){
+	complex<T> first_term, second_term;
+	first_term = Amplitude/(w - energy + gamma);
+	second_term = Amplitude/(-w - energy + gamma);
+	return first_term + second_term;
 }
 
 
@@ -298,14 +335,17 @@ void onCalculateG011(int id){
 	for(int i=0; i<scanUserData.numSpecVoltages; i++){
 		v = -scanUserData.vMax + i*stepSize;
 		scanUserData.spec[i] = -(1/(n_squared*PI))*scanUserData.G11[i].imag();
-		//printf("%lf %lf\n", v, scanUserData.spec[i]);
+		printf("%lf %lf %lf\n", v, scanUserData.spec[i], scanUserData.G11[i].imag());
 
 	}	
+	
 	cout << "finished spec values\n";
 
 	cout << "calculating max min\n";
-	double val = call_g_kernel(100.0, gamma, scanUserData.quasiEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.nx);
-	test_nate(5);
+	std::complex<double> correct = calcG011(100.0, gamma, scanUserData.quasiEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.nx);
+	cout << "CORRECT: " << correct << '\n';
+	//std::complex<double> val = call_g_kernel(100.0, gamma, scanUserData.quasiEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.nx);
+	//test_nate(5);
 
 	scanUserData.specMin = getMin(scanUserData.spec, scanUserData.numSpecVoltages);
 	scanUserData.specMax = getMax(scanUserData.spec, scanUserData.numSpecVoltages);
