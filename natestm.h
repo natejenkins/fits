@@ -62,7 +62,7 @@ struct ScanUserData{
 
 	int numSpecVoltages, numSpecSamples, numSpec, nx, nv;
 	char filename[100];
-	double vMin, vMax;
+	float vMin, vMax, lorentz_amplitude, lorentz_energy, lorentz_gamma;
 	int	action;
 	
 	double* kx;

@@ -124,8 +124,7 @@ template <class T>
 complex<T> calcG011_with_lorentzian(T w, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights, int rows){
 	int cols = rows;
 	int row, col, index;
-	T Amplitude = 100.0;
-	T energy = -60.0;
+
 	complex<T> t1, g011(0.0,0.0), wg, sigma_w;
 	T weight;
 	wg = w + gamma;
@@ -136,7 +135,7 @@ complex<T> calcG011_with_lorentzian(T w, complex<T> gamma, T* quasi_k, T* delta_
 			if(weight == 0){
 				continue;
 			}
-			sigma_w = lorentzian(Amplitude, energy, w, gamma);
+			sigma_w = lorentzian(scanUserData.lorentz_amplitude, scanUserData.lorentz_energy, w, gamma);
 			t1 = pow(delta_k[index], 2)/(wg + quasi_k[index] -sigma_w);
 			
 			
@@ -269,6 +268,10 @@ int main(int argc, char* argv[])
 	scanUserData.nx = 256;
 	scanUserData.gap0 = 50;
 
+	scanUserData.lorentz_amplitude = 100;
+	scanUserData.lorentz_energy = 100;
+	scanUserData.lorentz_gamma = 1.0;
+
 	init_glui(argc, argv);
 
 	return 0;
@@ -321,7 +324,7 @@ void onCalculateG011(int id){
 
 	
 	/*actually uses bare dispersion, not quasi dispersion*/
-	calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.G11, scanUserData.nx);
+	calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.G11,  scanUserData.nx);
 	//calcG11_linear((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.G11, scanUserData.nx);
 	
 	

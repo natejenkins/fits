@@ -198,14 +198,19 @@ int init_glui(int argc, char* argv[]){
 	myGraphicsData.uSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "u:", GLUI_SPINNER_FLOAT, &(scanUserData->u) );
 	myGraphicsData.uSpinner->set_float_limits( U_MIN, U_MAX );
 
-	myGraphicsData.vSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "vMax:", GLUI_SPINNER_FLOAT, &(scanUserData->vMax) );
-	myGraphicsData.vSpinner->set_float_limits( 0, V_MAX );
+	myGraphicsData.vMaxSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "vMax:", GLUI_SPINNER_FLOAT, &(scanUserData->vMax) );
+	myGraphicsData.vMaxSpinner->set_float_limits( 0, V_MAX );
 
 	myGraphicsData.gammaSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "gamma:", GLUI_SPINNER_FLOAT, &(scanUserData->gamma) );
 	myGraphicsData.gammaSpinner->set_float_limits( GAMMA_MIN, GAMMA_MAX );
 
 	myGraphicsData.nvSpinner = myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "num Vs:", GLUI_SPINNER_INT, &(scanUserData->numSpecVoltages) );
 	myGraphicsData.nvSpinner->set_int_limits( NUM_XY_MIN, NUM_XY_MAX );
+
+	myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "lorentz amplitude:", GLUI_SPINNER_FLOAT, &(scanUserData->lorentz_amplitude) );
+	myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "lorentz energy:", GLUI_SPINNER_FLOAT, &(scanUserData->lorentz_energy) );
+	myGraphicsData.glui->add_spinner_to_panel(myGraphicsData.topoRollout,  "lorentz gamma:", GLUI_SPINNER_FLOAT, &(scanUserData->lorentz_gamma) );
+	//myGraphicsData.gammaSpinner->set_float_limits( GAMMA_MIN, GAMMA_MAX );
 
 
 	myGraphicsData.glui->add_button_to_panel(myGraphicsData.topoRollout, "calculate G011", -1, onCalculateG011);
