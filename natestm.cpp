@@ -121,7 +121,7 @@ complex<T> calcG011(T w, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights,
 }
 
 template <class T>
-complex<T> calcG011_with_lorentzian(T w, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights, int rows){
+complex<T> calcG011_with_lorentzian(T w, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights, T lorentz_amplitude, T lorentz_energy, complex<T> lorentz_gamma, int rows){
 	int cols = rows;
 	int row, col, index;
 
@@ -135,12 +135,14 @@ complex<T> calcG011_with_lorentzian(T w, complex<T> gamma, T* quasi_k, T* delta_
 			if(weight == 0){
 				continue;
 			}
-			sigma_w = lorentzian(scanUserData.lorentz_amplitude, scanUserData.lorentz_energy, w, gamma);
+			sigma_w = lorentzian(lorentz_amplitude, lorentz_energy, w, lorentz_gamma);
+			
 			t1 = pow(delta_k[index], 2)/(wg + quasi_k[index] -sigma_w);
 			
 			
 			//g011 += 1.0/(w + gamma - quasi_k[row*cols+col] - t1);
 			g011 += weight/(wg - quasi_k[index] - sigma_w - t1);
+			
 		}
 	}
 	return g011;
@@ -152,17 +154,21 @@ void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta
 	boost::timer t;
 	int i;
 	complex<T> t1;
+	complex<T> lorentz_gamma;
+	T lorentz_energy=1;
+	T lorentz_amplitude=10000000;
 	T w, stepSize;
 	if(numSpecVoltages > 1)
 		stepSize = 2*wMax/(numSpecVoltages-1);
 	else 
 		stepSize = 0;
+
 	//printf("vMax: %.16lf, vstep: %.16lf, maxV: %.16lf\n", wMax, stepSize, -wMax + (numSpecVoltages-1)*stepSize);
 	#pragma omp parallel for
 	for(i=0;i<numSpecVoltages;i++){
 		w = -wMax + i*stepSize;
 		//cout << "voltage is " << w << endl;
-		G11[i] = calcG011_with_lorentzian(w, gamma, quasi_k, delta_k, k_weights, rows);
+		G11[i] = calcG011_with_lorentzian(w, gamma, quasi_k, delta_k, k_weights, lorentz_amplitude, lorentz_energy, lorentz_gamma, rows);
 	}
 	
 	double elapsed_time = t.elapsed();
