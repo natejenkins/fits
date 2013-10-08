@@ -289,56 +289,23 @@ void onCalculateG011(int id){
 	arrayRange(scanUserData.kx, -PI, PI - (2*PI)/scanUserData.nx, scanUserData.nx);
 	arrayRange(scanUserData.ky, -PI, PI - (2*PI)/scanUserData.nx, scanUserData.nx);
 
-	
 	dWaveGap(scanUserData.gap0, scanUserData.kx, scanUserData.ky, scanUserData.gaps, scanUserData.nx);
 	scanUserData.u  = -4.0*(scanUserData.t2 - scanUserData.t3) - scanUserData.Em;
 	calcBandEnergy(	scanUserData.kx, scanUserData.ky, 
-					scanUserData.t1, scanUserData.t2, scanUserData.t3, 
-					scanUserData.u, scanUserData.bandEnergy, scanUserData.nx);
-
-	scanUserData.bandMin = getMin(scanUserData.bandEnergy, scanUserData.nx*scanUserData.nx);
-	scanUserData.bandMax = getMax(scanUserData.bandEnergy, scanUserData.nx*scanUserData.nx);
+									scanUserData.t1, scanUserData.t2, scanUserData.t3, 
+									scanUserData.u, scanUserData.bandEnergy, scanUserData.nx);
 
 	calcQuasiEnergy(scanUserData.bandEnergy, scanUserData.gaps, scanUserData.quasiEnergy, scanUserData.nx);
-	scanUserData.quasiMin = getMin(scanUserData.quasiEnergy, scanUserData.nx*scanUserData.nx);
-	scanUserData.quasiMax = getMax(scanUserData.quasiEnergy, scanUserData.nx*scanUserData.nx);
 
 	complex<double> gamma(0.0,scanUserData.gamma);
 	double w = 0.0;
-
-	
-	/*actually uses bare dispersion, not quasi dispersion*/
 	complex<double> lorentz_gamma(0.0,scanUserData.lorentz_gamma);
 	calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, (double)scanUserData.lorentz_amplitude, (double)scanUserData.lorentz_energy, lorentz_gamma, scanUserData.G11,  scanUserData.nx);
-	//calcG11_linear((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, (double)scanUserData.lorentz_amplitude, (double)scanUserData.lorentz_energy, lorentz_gamma, scanUserData.G11,  scanUserData.nx);
-	
-	//calcG11_linear((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.G11, scanUserData.nx);
-	
-	
 	cout << "finished G11\n";
-	double v;
-	double stepSize = 2*scanUserData.vMax/(scanUserData.numSpecVoltages-1);
-
-	
 	double n_squared = scanUserData.nx*scanUserData.nx;
 	cout << "calculating spec values\n";
 	calcDOS(scanUserData.G11, scanUserData.spec, scanUserData.numSpecVoltages);
-	// for(int i=0; i<scanUserData.numSpecVoltages; i++){
-	// 	v = -scanUserData.vMax + i*stepSize;
-	// 	scanUserData.spec[i] = -(1/(n_squared*PI))*scanUserData.G11[i].imag();
-	// 	//printf("%lf %lf %lf\n", v, scanUserData.spec[i], scanUserData.G11[i].imag());
-
-	// }	
-	
 	cout << "finished spec values\n";
-
-	cout << "calculating max min\n";
-	std::complex<double> correct = calcG011(100.0, gamma, scanUserData.quasiEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.nx);
-	
-	cout << "CORRECT: " << correct << '\n';
-	//std::complex<double> val = call_g_kernel(100.0, gamma, scanUserData.quasiEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.nx);
-	//test_nate(5);
-
 	scanUserData.specMin = getMin(scanUserData.spec, scanUserData.numSpecVoltages);
 	scanUserData.specMax = getMax(scanUserData.spec, scanUserData.numSpecVoltages);
 	cout << "finished max min\n";
@@ -346,8 +313,6 @@ void onCalculateG011(int id){
 	fit();
 	cout << "finished fitting\n";
 	post_redisplay();
-
-
 }
 	
 void onSave(int id){
