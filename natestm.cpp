@@ -149,7 +149,7 @@ complex<T> calcG011_with_lorentzian(T w, complex<T> gamma, T* quasi_k, T* delta_
 }
 
 template <class T>
-void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights, complex<T>* G11, int rows){
+void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights,  T lorentz_amplitude, T lorentz_energy, complex<T> lorentz_gamma, complex<T>* G11, int rows){
 	printf("STARTING CALCULATION\n");
 	boost::timer t;
 	int i;
@@ -330,7 +330,8 @@ void onCalculateG011(int id){
 
 	
 	/*actually uses bare dispersion, not quasi dispersion*/
-	calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.G11,  scanUserData.nx);
+	complex<float> lorentz_gamma(0.0,scanUserData.lorentz_gamma);
+	calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.lorentz_amplitude, scanUserData.lorentz_energy, lorentz_gamma, scanUserData.G11,  scanUserData.nx);
 	//calcG11_linear((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.G11, scanUserData.nx);
 	
 	
