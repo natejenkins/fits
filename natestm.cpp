@@ -154,9 +154,9 @@ void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta
 	boost::timer t;
 	int i;
 	complex<T> t1;
-	complex<T> lorentz_gamma;
-	T lorentz_energy=1;
-	T lorentz_amplitude=10000000;
+	// complex<T> lorentz_gamma;
+	// T lorentz_energy=1;
+	// T lorentz_amplitude=10000000;
 	T w, stepSize;
 	if(numSpecVoltages > 1)
 		stepSize = 2*wMax/(numSpecVoltages-1);
@@ -330,8 +330,8 @@ void onCalculateG011(int id){
 
 	
 	/*actually uses bare dispersion, not quasi dispersion*/
-	complex<float> lorentz_gamma(0.0,scanUserData.lorentz_gamma);
-	calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.lorentz_amplitude, scanUserData.lorentz_energy, lorentz_gamma, scanUserData.G11,  scanUserData.nx);
+	complex<double> lorentz_gamma(0.0,scanUserData.lorentz_gamma);
+	calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, (double)scanUserData.lorentz_amplitude, (double)scanUserData.lorentz_energy, lorentz_gamma, scanUserData.G11,  scanUserData.nx);
 	//calcG11_linear((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.G11, scanUserData.nx);
 	
 	
