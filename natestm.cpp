@@ -23,7 +23,7 @@
 
 using namespace std;
 
-
+void fit(void);
 template <class T>
 int calcKWeights(T* weights, int rows){
 	int cols = rows;
@@ -178,37 +178,11 @@ void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta
 }
 
 template <class T>
-void calcG11_linear(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights, T lorentz_amplitude, T lorentz_energy, complex<T> lorentz_gamma, complex<T>* G11, int rows){
-	printf("STARTING CALCULATION LINEAR\n");
-	boost::timer t;
-	int i;
-	int reduced_rows, reduced_cols;
-	reduced_rows = reduced_cols = rows/2 + 1;
-	int n_squared = reduced_rows*reduced_rows;
-	T *reduced_quasi_k, *reduced_delta_k, *reduced_k_weights;
-	reduced_quasi_k = free_and_reallocate(reduced_quasi_k, n_squared);
-	reduced_delta_k = free_and_reallocate(reduced_delta_k, n_squared);
-	reduced_k_weights = free_and_reallocate(reduced_k_weights, n_squared);
-	
-	
-	complex<T> t1;
-	T w, stepSize;
-	if(numSpecVoltages > 1)
-		stepSize = 2*wMax/(numSpecVoltages-1);
-	else 
-		stepSize = 0;
-	//printf("vMax: %.16lf, vstep: %.16lf, maxV: %.16lf\n", wMax, stepSize, -wMax + (numSpecVoltages-1)*stepSize);
-	for(i=0;i<numSpecVoltages;i++){
-		w = -wMax + i*stepSize;
-		//cout << "voltage is " << w << endl;
-		//G11[i] = calcG011(w, gamma, quasi_k, delta_k, k_weights, rows);
-		//G11[i] = calcG011_with_lorentzian(w, gamma, quasi_k, delta_k, k_weights, lorentz_amplitude, lorentz_energy, lorentz_gamma, rows);
-		G11[i] = calcG011_with_lorentzian(w, gamma, reduced_quasi_k, reduced_delta_k, reduced_k_weights, lorentz_amplitude, lorentz_energy, lorentz_gamma, rows);
-	
-	}
-	double elapsed_time = t.elapsed();
-	cout << "G11 elapsed time: " << elapsed_time << "\n";
-	printf("ENDING CALCULATION\n");
+void calcDOS(complex<T>* G11, T* DOS, int numSpecVoltages){
+	int n_squared = numSpecVoltages*numSpecVoltages;
+	for(int i=0; i<numSpecVoltages; i++){
+		DOS[i] = -(1/(n_squared*PI))*G11[i].imag();
+	}	
 }
 
 template <class T>
@@ -348,12 +322,13 @@ void onCalculateG011(int id){
 	
 	double n_squared = scanUserData.nx*scanUserData.nx;
 	cout << "calculating spec values\n";
-	for(int i=0; i<scanUserData.numSpecVoltages; i++){
-		v = -scanUserData.vMax + i*stepSize;
-		scanUserData.spec[i] = -(1/(n_squared*PI))*scanUserData.G11[i].imag();
-		//printf("%lf %lf %lf\n", v, scanUserData.spec[i], scanUserData.G11[i].imag());
+	calcDOS(scanUserData.G11, scanUserData.spec, scanUserData.numSpecVoltages);
+	// for(int i=0; i<scanUserData.numSpecVoltages; i++){
+	// 	v = -scanUserData.vMax + i*stepSize;
+	// 	scanUserData.spec[i] = -(1/(n_squared*PI))*scanUserData.G11[i].imag();
+	// 	//printf("%lf %lf %lf\n", v, scanUserData.spec[i], scanUserData.G11[i].imag());
 
-	}	
+	// }	
 	
 	cout << "finished spec values\n";
 
@@ -367,6 +342,9 @@ void onCalculateG011(int id){
 	scanUserData.specMin = getMin(scanUserData.spec, scanUserData.numSpecVoltages);
 	scanUserData.specMax = getMax(scanUserData.spec, scanUserData.numSpecVoltages);
 	cout << "finished max min\n";
+	cout << "starting fitting\n";
+	fit();
+	cout << "finished fitting\n";
 	post_redisplay();
 
 
