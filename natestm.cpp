@@ -14,6 +14,7 @@
 #include "define_constants.h"
 //#include <boost/progress.hpp>
 #include <boost/timer.hpp>
+#include "lmcurve.h"
 
 /* removing cuda functionality for the moment */
 //#include <cuda.h>
@@ -177,7 +178,7 @@ void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta
 }
 
 template <class T>
-void calcG11_linear(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights, complex<T>* G11, int rows){
+void calcG11_linear(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights, T lorentz_amplitude, T lorentz_energy, complex<T> lorentz_gamma, complex<T>* G11, int rows){
 	printf("STARTING CALCULATION LINEAR\n");
 	boost::timer t;
 	int i;
@@ -200,7 +201,10 @@ void calcG11_linear(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T
 	for(i=0;i<numSpecVoltages;i++){
 		w = -wMax + i*stepSize;
 		//cout << "voltage is " << w << endl;
-		G11[i] = calcG011(w, gamma, quasi_k, delta_k, k_weights, rows);
+		//G11[i] = calcG011(w, gamma, quasi_k, delta_k, k_weights, rows);
+		//G11[i] = calcG011_with_lorentzian(w, gamma, quasi_k, delta_k, k_weights, lorentz_amplitude, lorentz_energy, lorentz_gamma, rows);
+		G11[i] = calcG011_with_lorentzian(w, gamma, reduced_quasi_k, reduced_delta_k, reduced_k_weights, lorentz_amplitude, lorentz_energy, lorentz_gamma, rows);
+	
 	}
 	double elapsed_time = t.elapsed();
 	cout << "G11 elapsed time: " << elapsed_time << "\n";
@@ -332,6 +336,8 @@ void onCalculateG011(int id){
 	/*actually uses bare dispersion, not quasi dispersion*/
 	complex<double> lorentz_gamma(0.0,scanUserData.lorentz_gamma);
 	calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, (double)scanUserData.lorentz_amplitude, (double)scanUserData.lorentz_energy, lorentz_gamma, scanUserData.G11,  scanUserData.nx);
+	//calcG11_linear((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, (double)scanUserData.lorentz_amplitude, (double)scanUserData.lorentz_energy, lorentz_gamma, scanUserData.G11,  scanUserData.nx);
+	
 	//calcG11_linear((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.G11, scanUserData.nx);
 	
 	
@@ -345,7 +351,7 @@ void onCalculateG011(int id){
 	for(int i=0; i<scanUserData.numSpecVoltages; i++){
 		v = -scanUserData.vMax + i*stepSize;
 		scanUserData.spec[i] = -(1/(n_squared*PI))*scanUserData.G11[i].imag();
-		printf("%lf %lf %lf\n", v, scanUserData.spec[i], scanUserData.G11[i].imag());
+		//printf("%lf %lf %lf\n", v, scanUserData.spec[i], scanUserData.G11[i].imag());
 
 	}	
 	
@@ -353,6 +359,7 @@ void onCalculateG011(int id){
 
 	cout << "calculating max min\n";
 	std::complex<double> correct = calcG011(100.0, gamma, scanUserData.quasiEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.nx);
+	
 	cout << "CORRECT: " << correct << '\n';
 	//std::complex<double> val = call_g_kernel(100.0, gamma, scanUserData.quasiEnergy, scanUserData.gaps, scanUserData.k_weights, scanUserData.nx);
 	//test_nate(5);
@@ -388,3 +395,43 @@ void onCalcWeights(int id){
 	printArray(scanUserData.k_weights, scanUserData.nx, scanUserData.nx);
 }
 
+
+double f( double t, const double *p )
+{
+    return p[0] + p[1]*t + p[2]*t*t;
+}
+
+void fit(void){
+    int n = 3; /* number of parameters in model function f */
+    double par[3] = { 100, 0, -10 }; /* really bad starting value */
+    
+    /* data points: a slightly distorted standard parabola */
+    int m = 9;
+    int i;
+    double t[9] = { -4., -3., -2., -1.,  0., 1.,  2.,  3.,  4. };
+    double y[9] = { 16.6, 9.9, 4.4, 1.1, 0., 1.1, 4.2, 9.3, 16.4 };
+
+    lm_control_struct control = lm_control_double;
+    lm_status_struct status;
+    control.verbosity = 9;
+
+    printf( "Fitting ...\n" );
+    /* now the call to lmfit */
+    lmcurve( n, par, m, t, y, f, &control, &status );
+        
+    printf( "Results:\n" );
+    printf( "status after %d function evaluations:\n  %s\n",
+            status.nfev, lm_infmsg[status.outcome] );
+
+    printf("obtained parameters:\n");
+    for ( i = 0; i < n; ++i)
+        printf("  par[%i] = %12g\n", i, par[i]);
+    printf("obtained norm:\n  %12g\n", status.fnorm );
+    
+    printf("fitting data as follows:\n");
+    for ( i = 0; i < m; ++i)
+        printf( "  t[%2d]=%4g y=%6g fit=%10g residue=%12g\n",
+                i, t[i], y[i], f(t[i],par), y[i] - f(t[i],par) );
+
+    return;
+  }
