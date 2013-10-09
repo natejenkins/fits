@@ -125,6 +125,8 @@ void draw(void){
 	if(scanUserData->spec){
 		glViewport(0,myGraphicsData.height/2.0, myGraphicsData.width/2.0, myGraphicsData.height/2.0);
 		displaySpecData(scanUserData->spec, scanUserData->numSpecVoltages, scanUserData->specMin, scanUserData->specMax, 1.0,0.0,0.0);
+		displaySpecData(scanUserData->fit_spec, scanUserData->numSpecVoltages, scanUserData->specMin, scanUserData->specMax, 0.0,1.0,0.0);
+	
 		//drawImage(scanUserData->quasiEnergy, scanUserData->nx, scanUserData->nx, scanUserData->quasiMin, scanUserData->quasiMax);
 	}
 

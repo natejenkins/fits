@@ -357,9 +357,10 @@ void onCalculateG011(int id){
 	int* userbreak;
 
 	
-
-	int i = 0;
 	double par[9];
+	int i;
+
+	i=0;
 	par[i++] = scanUserData.gap0;
 	par[i++] = scanUserData.t1;
 	par[i++] = scanUserData.t2;
@@ -371,6 +372,19 @@ void onCalculateG011(int id){
 	par[i++] = scanUserData.lorentz_gamma;
 
 	calc_dos_for_fit( par, m_dat, (void*)&scanUserData, scanUserData.spec );
+
+	i=0;
+	par[i++] = scanUserData.gap0-10;
+	par[i++] = scanUserData.t1;
+	par[i++] = scanUserData.t2;
+	par[i++] = scanUserData.t3;
+	par[i++] = scanUserData.u; 
+	par[i++] = scanUserData.gamma;
+	par[i++] = scanUserData.lorentz_amplitude;
+	par[i++] = scanUserData.lorentz_energy;
+	par[i++] = scanUserData.lorentz_gamma;
+
+	evaluate_dos( par, m_dat,(void*)&scanUserData, scanUserData.fit_vector, userbreak );
 
 
 	/* -------------------------- POST PROCESSING --------------------------------------------- */
