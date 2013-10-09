@@ -276,11 +276,13 @@ void allocateMemory(ScanUserData* scanUserData){
 	scanUserData->k_weights = free_and_reallocate(scanUserData->k_weights, nx_squared);
 	scanUserData->G11 = free_and_reallocate(scanUserData->G11, scanUserData->numSpecVoltages);
 	scanUserData->spec = free_and_reallocate(scanUserData->spec, scanUserData->numSpecVoltages);
+	scanUserData->fit_spec = free_and_reallocate(scanUserData->fit_spec, scanUserData->numSpecVoltages);
+	scanUserData->fit_vector = free_and_reallocate(scanUserData->fit_vector, scanUserData->numSpecVoltages);
 
 }
 
 void calc_dos_for_fit( const double *par, int m_dat,
-        void *data ){
+        void *data, double* spec ){
 	double gap0, t1, t2, t3, u, gam;
 	double lorentz_amplitude, lorentz_energy, l_gamma;
 	ScanUserData sud = *((ScanUserData*)data);
@@ -301,32 +303,29 @@ void calc_dos_for_fit( const double *par, int m_dat,
 	u  = -4.0*(t2 - t3) - sud.Em;
 
 	dWaveGap(gap0, sud.kx, sud.ky, sud.gaps, sud.nx);
-	calcBandEnergy(	sud.kx, sud.ky, 
-									t1, t2, t3, u, sud.bandEnergy, sud.nx);
+	calcBandEnergy(	sud.kx, sud.ky, t1, t2, t3, u, sud.bandEnergy, sud.nx);
 
 	calcQuasiEnergy(sud.bandEnergy, sud.gaps, sud.quasiEnergy, sud.nx);
 
 	
-	calcG11((double)sud.vMax, sud.numSpecVoltages, gamma, 
-					sud.bandEnergy, sud.gaps, sud.k_weights, 
-					lorentz_amplitude, lorentz_energy, lorentz_gamma, 
-					sud.G11,  sud.nx);
+	calcG11((double)sud.vMax, sud.numSpecVoltages, gamma, sud.bandEnergy, sud.gaps, sud.k_weights, 
+					lorentz_amplitude, lorentz_energy, lorentz_gamma, sud.G11,  sud.nx);
 	cout << "finished G11\n";
-	calcDOS(sud.G11, sud.spec, sud.numSpecVoltages);
+	calcDOS(sud.G11, spec, sud.numSpecVoltages);
 }
 
 void evaluate_dos( double *par, int m_dat,
         void *data, double *fvec, int *userbreak ){
         /* for readability, explicit type conversion */
-	ScanUserData *D;
-	D = (ScanUserData*)data;
+	ScanUserData sud;
+	sud = *((ScanUserData*)data);
 
-	calc_dos_for_fit( par, m_dat, data );
+	calc_dos_for_fit( par, m_dat, data, sud.fit_spec );
 
-	// int i;
-	// // for ( i = 0; i < m_dat; i++ ){
-	// // 	fvec[i] = D->y[i] - D->f( D->tx[i], D->tz[i], par );
-	// // }
+	int i;
+	for ( i = 0; i < m_dat; i++ ){
+		fvec[i] = sud.spec[i] - sud.fit_spec[i];
+	}
 }
 
 void onCalculateG011(int id){
@@ -371,7 +370,7 @@ void onCalculateG011(int id){
 	par[i++] = scanUserData.lorentz_energy;
 	par[i++] = scanUserData.lorentz_gamma;
 
-	calc_dos_for_fit( par, m_dat, (void*)&scanUserData );
+	calc_dos_for_fit( par, m_dat, (void*)&scanUserData, scanUserData.spec );
 
 
 	/* -------------------------- POST PROCESSING --------------------------------------------- */
@@ -380,7 +379,7 @@ void onCalculateG011(int id){
 	scanUserData.specMax = getMax(scanUserData.spec, scanUserData.numSpecVoltages);
 	cout << "finished max min\n";
 	cout << "starting fitting\n";
-	fit();
+	
 	cout << "finished fitting\n";
 	post_redisplay();
 }
@@ -407,46 +406,3 @@ void onCalcWeights(int id){
 	calcKWeights(scanUserData.k_weights, scanUserData.nx);
 	printArray(scanUserData.k_weights, scanUserData.nx, scanUserData.nx);
 }
-
-
-double f( double t, const double *p )
-{
-		getScanUserData();
-    return p[0] + p[1]*t + p[2]*t*t;
-}
-
-void fit(void){
-		
-    int n = 3; /* number of parameters in model function f */
-    double par[3] = { 100, 0, -10 }; /* really bad starting value */
-    
-    /* data points: a slightly distorted standard parabola */
-    int m = 9;
-    int i;
-    double t[9] = { -4., -3., -2., -1.,  0., 1.,  2.,  3.,  4. };
-    double y[9] = { 16.6, 9.9, 4.4, 1.1, 0., 1.1, 4.2, 9.3, 16.4 };
-
-    lm_control_struct control = lm_control_double;
-    lm_status_struct status;
-    control.verbosity = 9;
-
-    printf( "Fitting ...\n" );
-    /* now the call to lmfit */
-    lmcurve( n, par, m, t, y, f, &control, &status );
-        
-    printf( "Results:\n" );
-    printf( "status after %d function evaluations:\n  %s\n",
-            status.nfev, lm_infmsg[status.outcome] );
-
-    printf("obtained parameters:\n");
-    for ( i = 0; i < n; ++i)
-        printf("  par[%i] = %12g\n", i, par[i]);
-    printf("obtained norm:\n  %12g\n", status.fnorm );
-    
-    printf("fitting data as follows:\n");
-    for ( i = 0; i < m; ++i)
-        printf( "  t[%2d]=%4g y=%6g fit=%10g residue=%12g\n",
-                i, t[i], y[i], f(t[i],par), y[i] - f(t[i],par) );
-
-    return;
-  }

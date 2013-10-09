@@ -72,6 +72,8 @@ struct ScanUserData{
 	double* bandEnergy;
 	double* quasiEnergy;
 	double* spec;
+	double* fit_spec;
+	double* fit_vector;
 	std::complex<double>* G11;
 
 
