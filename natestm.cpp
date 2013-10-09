@@ -14,7 +14,7 @@
 #include "define_constants.h"
 //#include <boost/progress.hpp>
 #include <boost/timer.hpp>
-#include "lmcurve.h"
+#include "lmmin.h"
 
 /* removing cuda functionality for the moment */
 //#include <cuda.h>
@@ -282,7 +282,7 @@ void allocateMemory(ScanUserData* scanUserData){
 }
 
 void calc_dos_for_fit( const double *par, int m_dat,
-        void *data, double* spec ){
+        const void *data, double* spec ){
 	double gap0, t1, t2, t3, u, gam;
 	double lorentz_amplitude, lorentz_energy, l_gamma;
 	ScanUserData sud = *((ScanUserData*)data);
@@ -314,8 +314,8 @@ void calc_dos_for_fit( const double *par, int m_dat,
 	calcDOS(sud.G11, spec, sud.numSpecVoltages);
 }
 
-void evaluate_dos( double *par, int m_dat,
-        void *data, double *fvec, int *userbreak ){
+void evaluate_dos( const double *par, int m_dat,
+        const void *data, double *fvec, int *userbreak ){
         /* for readability, explicit type conversion */
 	ScanUserData sud;
 	sud = *((ScanUserData*)data);
@@ -358,6 +358,7 @@ void onCalculateG011(int id){
 
 	
 	double par[9];
+	int n_par = 9;
 	int i;
 
 	i=0;
@@ -393,7 +394,24 @@ void onCalculateG011(int id){
 	scanUserData.specMax = getMax(scanUserData.spec, scanUserData.numSpecVoltages);
 	cout << "finished max min\n";
 	cout << "starting fitting\n";
-	
+        /* auxiliary parameters */
+        lm_status_struct status;
+        lm_control_struct control = lm_control_double;
+        control.verbosity = 3;
+
+        /* perform the fit */
+        printf( "Fitting:\n" );
+        lmmin( n_par, par, m_dat, (const void*) &scanUserData, evaluate_dos, &control, &status );
+
+        /* print results */
+        printf( "\nResults:\n" );
+        printf( "status after %d function evaluations:\n  %s\n",
+                status.nfev, lm_infmsg[status.outcome] );
+
+        printf("obtained parameters:\n");
+        for ( i=0; i<n_par; ++i )
+        printf("  par[%i] = %12g\n", i, par[i]);
+        printf("obtained norm:\n  %12g\n", status.fnorm );
 	cout << "finished fitting\n";
 	post_redisplay();
 }
