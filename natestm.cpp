@@ -187,8 +187,7 @@ void calcDOS(complex<T>* G11, T* DOS, int numSpecVoltages){
 
 template <class T>
 T fermi(T energy, T fermiEnergy, T beta){
-	return 1/(pow(M_E, (energy-fermiEnergy)*beta) + 1.0);	
-	
+	return 1/(pow(M_E, (energy-fermiEnergy)*beta) + 1.0);		
 }
 
 template <class T>
@@ -198,9 +197,6 @@ complex<T> lorentzian(T Amplitude, T energy, T w, complex<T> gamma){
 	second_term = Amplitude/(-w - energy + gamma);
 	return first_term + second_term;
 }
-
-
-
 
 template <class T>
 void arrayRange(T* array, T min, T max, int numSteps){
@@ -230,6 +226,8 @@ ScanUserData scanUserData;
 ScanUserData* getScanUserData(void){
 	return &scanUserData;
 }
+
+
 
 int main(int argc, char* argv[])
 {
@@ -281,30 +279,102 @@ void allocateMemory(ScanUserData* scanUserData){
 
 }
 
+void calc_dos_for_fit( const double *par, int m_dat,
+        const void *data, double *fvec, int *userbreak ){
+	double gap0, t1, t2, t3, u, gam;
+	double lorentz_amplitude, lorentz_energy, l_gamma;
 
-void onCalculateG011(int id){
-	allocateMemory(&scanUserData);
+	int i = 0;
+	gap0 	= par[i++];
+	t1   	= par[i++];
+	t2   	= par[i++];
+	t3   	= par[i++];
+	u   	= par[i++];
+	gam   		= par[i++];
+	complex<double> gamma(0.0,gam);
+	lorentz_amplitude = par[i++];
+	lorentz_energy   	= par[i++];
+	l_gamma   	= par[i++];
+	complex<double> lorentz_gamma(0.0,l_gamma);
 
-	int non_zero_length = calcKWeights(scanUserData.k_weights, scanUserData.nx);
-	arrayRange(scanUserData.kx, -PI, PI - (2*PI)/scanUserData.nx, scanUserData.nx);
-	arrayRange(scanUserData.ky, -PI, PI - (2*PI)/scanUserData.nx, scanUserData.nx);
+	u  = -4.0*(t2 - t3) - scanUserData.Em;
 
-	dWaveGap(scanUserData.gap0, scanUserData.kx, scanUserData.ky, scanUserData.gaps, scanUserData.nx);
-	scanUserData.u  = -4.0*(scanUserData.t2 - scanUserData.t3) - scanUserData.Em;
+	dWaveGap(gap0, scanUserData.kx, scanUserData.ky, scanUserData.gaps, scanUserData.nx);
 	calcBandEnergy(	scanUserData.kx, scanUserData.ky, 
-									scanUserData.t1, scanUserData.t2, scanUserData.t3, 
-									scanUserData.u, scanUserData.bandEnergy, scanUserData.nx);
+									t1, t2, t3, u, scanUserData.bandEnergy, m_dat);
 
 	calcQuasiEnergy(scanUserData.bandEnergy, scanUserData.gaps, scanUserData.quasiEnergy, scanUserData.nx);
 
-	complex<double> gamma(0.0,scanUserData.gamma);
-	double w = 0.0;
-	complex<double> lorentz_gamma(0.0,scanUserData.lorentz_gamma);
-	calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, (double)scanUserData.lorentz_amplitude, (double)scanUserData.lorentz_energy, lorentz_gamma, scanUserData.G11,  scanUserData.nx);
+	
+	calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, 
+					scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, 
+					lorentz_amplitude, lorentz_energy, lorentz_gamma, 
+					scanUserData.G11,  scanUserData.nx);
 	cout << "finished G11\n";
-	double n_squared = scanUserData.nx*scanUserData.nx;
-	cout << "calculating spec values\n";
 	calcDOS(scanUserData.G11, scanUserData.spec, scanUserData.numSpecVoltages);
+}
+
+void evaluate_dos( const double *par, int m_dat,
+        const void *data, double *fvec, int *userbreak ){
+        /* for readability, explicit type conversion */
+	ScanUserData *D;
+	D = (ScanUserData*)data;
+
+	calc_dos_for_fit( par, m_dat, data, fvec, userbreak );
+
+	// int i;
+	// // for ( i = 0; i < m_dat; i++ ){
+	// // 	fvec[i] = D->y[i] - D->f( D->tx[i], D->tz[i], par );
+	// // }
+}
+
+void onCalculateG011(int id){
+
+	/* ------------------------- SETUP -------------------------------- */
+	allocateMemory(&scanUserData);
+	calcKWeights(scanUserData.k_weights, scanUserData.nx);
+	arrayRange(scanUserData.kx, -PI, PI - (2*PI)/scanUserData.nx, scanUserData.nx);
+	arrayRange(scanUserData.ky, -PI, PI - (2*PI)/scanUserData.nx, scanUserData.nx);
+
+	/* ------------------------- CALCULATION --------------------------- */
+
+	// dWaveGap(scanUserData.gap0, scanUserData.kx, scanUserData.ky, scanUserData.gaps, scanUserData.nx);
+	// scanUserData.u  = -4.0*(scanUserData.t2 - scanUserData.t3) - scanUserData.Em;
+	// calcBandEnergy(	scanUserData.kx, scanUserData.ky, 
+	// 								scanUserData.t1, scanUserData.t2, scanUserData.t3, 
+	// 								scanUserData.u, scanUserData.bandEnergy, scanUserData.nx);
+
+	// calcQuasiEnergy(scanUserData.bandEnergy, scanUserData.gaps, scanUserData.quasiEnergy, scanUserData.nx);
+
+	// complex<double> gamma(0.0,scanUserData.gamma);
+	// double w = 0.0;
+	// complex<double> lorentz_gamma(0.0,scanUserData.lorentz_gamma);
+	// calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, (double)scanUserData.lorentz_amplitude, (double)scanUserData.lorentz_energy, lorentz_gamma, scanUserData.G11,  scanUserData.nx);
+	// cout << "finished G11\n";
+	// calcDOS(scanUserData.G11, scanUserData.spec, scanUserData.numSpecVoltages);
+	int m_dat = scanUserData.numSpecVoltages;
+	double* fvec;
+	int* userbreak;
+
+	
+
+	int i = 0;
+	double par[9];
+	par[i++] = scanUserData.gap0;
+	par[i++] = scanUserData.t1;
+	par[i++] = scanUserData.t2;
+	par[i++] = scanUserData.t3;
+	par[i++] = scanUserData.u; 
+	par[i++] = scanUserData.gamma;
+	par[i++] = scanUserData.lorentz_amplitude;
+	par[i++] = scanUserData.lorentz_energy;
+	par[i++] = scanUserData.lorentz_gamma;
+
+	calc_dos_for_fit( par, m_dat,
+        (void*)&scanUserData, fvec, userbreak );
+
+
+	/* -------------------------- POST PROCESSING --------------------------------------------- */
 	cout << "finished spec values\n";
 	scanUserData.specMin = getMin(scanUserData.spec, scanUserData.numSpecVoltages);
 	scanUserData.specMax = getMax(scanUserData.spec, scanUserData.numSpecVoltages);
@@ -341,10 +411,12 @@ void onCalcWeights(int id){
 
 double f( double t, const double *p )
 {
+		getScanUserData();
     return p[0] + p[1]*t + p[2]*t*t;
 }
 
 void fit(void){
+		
     int n = 3; /* number of parameters in model function f */
     double par[3] = { 100, 0, -10 }; /* really bad starting value */
     
