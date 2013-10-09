@@ -280,9 +280,10 @@ void allocateMemory(ScanUserData* scanUserData){
 }
 
 void calc_dos_for_fit( const double *par, int m_dat,
-        const void *data, double *fvec, int *userbreak ){
+        void *data ){
 	double gap0, t1, t2, t3, u, gam;
 	double lorentz_amplitude, lorentz_energy, l_gamma;
+	ScanUserData sud = *((ScanUserData*)data);
 
 	int i = 0;
 	gap0 	= par[i++];
@@ -297,30 +298,30 @@ void calc_dos_for_fit( const double *par, int m_dat,
 	l_gamma   	= par[i++];
 	complex<double> lorentz_gamma(0.0,l_gamma);
 
-	u  = -4.0*(t2 - t3) - scanUserData.Em;
+	u  = -4.0*(t2 - t3) - sud.Em;
 
-	dWaveGap(gap0, scanUserData.kx, scanUserData.ky, scanUserData.gaps, scanUserData.nx);
-	calcBandEnergy(	scanUserData.kx, scanUserData.ky, 
-									t1, t2, t3, u, scanUserData.bandEnergy, m_dat);
+	dWaveGap(gap0, sud.kx, sud.ky, sud.gaps, sud.nx);
+	calcBandEnergy(	sud.kx, sud.ky, 
+									t1, t2, t3, u, sud.bandEnergy, sud.nx);
 
-	calcQuasiEnergy(scanUserData.bandEnergy, scanUserData.gaps, scanUserData.quasiEnergy, scanUserData.nx);
+	calcQuasiEnergy(sud.bandEnergy, sud.gaps, sud.quasiEnergy, sud.nx);
 
 	
-	calcG11((double)scanUserData.vMax, scanUserData.numSpecVoltages, gamma, 
-					scanUserData.bandEnergy, scanUserData.gaps, scanUserData.k_weights, 
+	calcG11((double)sud.vMax, sud.numSpecVoltages, gamma, 
+					sud.bandEnergy, sud.gaps, sud.k_weights, 
 					lorentz_amplitude, lorentz_energy, lorentz_gamma, 
-					scanUserData.G11,  scanUserData.nx);
+					sud.G11,  sud.nx);
 	cout << "finished G11\n";
-	calcDOS(scanUserData.G11, scanUserData.spec, scanUserData.numSpecVoltages);
+	calcDOS(sud.G11, sud.spec, sud.numSpecVoltages);
 }
 
-void evaluate_dos( const double *par, int m_dat,
-        const void *data, double *fvec, int *userbreak ){
+void evaluate_dos( double *par, int m_dat,
+        void *data, double *fvec, int *userbreak ){
         /* for readability, explicit type conversion */
 	ScanUserData *D;
 	D = (ScanUserData*)data;
 
-	calc_dos_for_fit( par, m_dat, data, fvec, userbreak );
+	calc_dos_for_fit( par, m_dat, data );
 
 	// int i;
 	// // for ( i = 0; i < m_dat; i++ ){
@@ -370,8 +371,7 @@ void onCalculateG011(int id){
 	par[i++] = scanUserData.lorentz_energy;
 	par[i++] = scanUserData.lorentz_gamma;
 
-	calc_dos_for_fit( par, m_dat,
-        (void*)&scanUserData, fvec, userbreak );
+	calc_dos_for_fit( par, m_dat, (void*)&scanUserData );
 
 
 	/* -------------------------- POST PROCESSING --------------------------------------------- */
