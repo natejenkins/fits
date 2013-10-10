@@ -151,7 +151,7 @@ complex<T> calcG011_with_lorentzian(T w, complex<T> gamma, T* quasi_k, T* delta_
 
 template <class T>
 void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta_k, T* k_weights,  T lorentz_amplitude, T lorentz_energy, complex<T> lorentz_gamma, complex<T>* G11, int rows){
-	printf("STARTING CALCULATION\n");
+	//printf("STARTING CALCULATION\n");
 	boost::timer t;
 	int i;
 	complex<T> t1;
@@ -173,8 +173,8 @@ void calcG11(T wMax, int numSpecVoltages, complex<T> gamma, T* quasi_k, T* delta
 	}
 	
 	double elapsed_time = t.elapsed();
-	cout << "G11 elapsed time: " << elapsed_time << "\n";
-	printf("ENDING CALCULATION\n");
+	//cout << "G11 elapsed time: " << elapsed_time << "\n";
+	//printf("ENDING CALCULATION\n");
 }
 
 template <class T>
@@ -264,7 +264,7 @@ void idle(){
 }
 
 void allocateMemory(ScanUserData* scanUserData){
-	printf("allocating scan memory\n");
+	//printf("allocating scan memory\n");
 	int nx_squared = scanUserData->nx*scanUserData->nx;
 	int nx = scanUserData->nx;
 
@@ -326,6 +326,9 @@ void evaluate_dos( const double *par, int m_dat,
 	for ( i = 0; i < m_dat; i++ ){
 		fvec[i] = sud.spec[i] - sud.fit_spec[i];
 	}
+
+	draw();
+
 }
 
 void onCalculateG011(int id){
@@ -373,12 +376,17 @@ void onCalculateG011(int id){
 	par[i++] = scanUserData.lorentz_gamma;
 
 	calc_dos_for_fit( par, m_dat, (void*)&scanUserData, scanUserData.spec );
+	//draw();
+	cout << "finished spec values\n";
+	scanUserData.specMin = getMin(scanUserData.spec, scanUserData.numSpecVoltages);
+	scanUserData.specMax = getMax(scanUserData.spec, scanUserData.numSpecVoltages);
+	cout << "finished max min\n";
 
 	i=0;
 	par[i++] = scanUserData.gap0-10;
-	par[i++] = scanUserData.t1;
-	par[i++] = scanUserData.t2;
-	par[i++] = scanUserData.t3;
+	par[i++] = scanUserData.t1-300;
+	par[i++] = scanUserData.t2+100;
+	par[i++] = scanUserData.t3-200;
 	par[i++] = scanUserData.u; 
 	par[i++] = scanUserData.gamma;
 	par[i++] = scanUserData.lorentz_amplitude;
@@ -386,13 +394,11 @@ void onCalculateG011(int id){
 	par[i++] = scanUserData.lorentz_gamma;
 
 	evaluate_dos( par, m_dat,(void*)&scanUserData, scanUserData.fit_vector, userbreak );
+	//draw();
 
 
 	/* -------------------------- POST PROCESSING --------------------------------------------- */
-	cout << "finished spec values\n";
-	scanUserData.specMin = getMin(scanUserData.spec, scanUserData.numSpecVoltages);
-	scanUserData.specMax = getMax(scanUserData.spec, scanUserData.numSpecVoltages);
-	cout << "finished max min\n";
+
 	cout << "starting fitting\n";
         /* auxiliary parameters */
         lm_status_struct status;
@@ -403,7 +409,6 @@ void onCalculateG011(int id){
         printf( "Fitting:\n" );
         lmmin( n_par, par, m_dat, (const void*) &scanUserData, evaluate_dos, &control, &status );
 
-        /* print results */
         printf( "\nResults:\n" );
         printf( "status after %d function evaluations:\n  %s\n",
                 status.nfev, lm_infmsg[status.outcome] );
@@ -413,7 +418,8 @@ void onCalculateG011(int id){
         printf("  par[%i] = %12g\n", i, par[i]);
         printf("obtained norm:\n  %12g\n", status.fnorm );
 	cout << "finished fitting\n";
-	post_redisplay();
+	//post_redisplay();
+
 }
 	
 void onSave(int id){

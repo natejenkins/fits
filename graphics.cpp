@@ -105,6 +105,9 @@ void drawImage(T* image, int cols, int rows, double min, double max){
 }
 
 void draw(void){
+	if(glutGetWindow() != myGraphicsData.mainWindow){
+			glutSetWindow(myGraphicsData.mainWindow);
+	}
 	glClearColor(0,0.5, 0.6, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	ScanUserData* scanUserData = getScanUserData();
